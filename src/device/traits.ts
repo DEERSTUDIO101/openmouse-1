@@ -53,6 +53,9 @@ const BY_FAMILY: Readonly<Record<string, Partial<DriverTraits>>> = {
   "keychron-m6": { advancedSection: true, sleep: true, debounce: true },
   // Launcher offers no sleep setting for the 4K family, so only debounce.
   "keychron-4k": { advancedSection: true, debounce: true },
+  // The 8K Nordic family (G3 Air) keeps debounce and sleep in its system block
+  // and publishes its own option lists for both.
+  "keychron-8k-nordic": { advancedSection: true, sleep: true, debounce: true },
   // The Beast X 4K skips the compx transport the rest of WLMouse uses and
   // publishes its own sleep and debounce lists, so it takes the plain flags.
   "wlmouse-4k": { advancedSection: true, sleep: true, debounce: true },
