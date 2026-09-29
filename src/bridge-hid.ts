@@ -354,7 +354,9 @@ class BridgeClient {
 
     const pending = this.#pending.get(message.id);
     if (!pending) {
-      bridgeLog("warn", "unexpected response", { detail: { id: message.id } });
+      // Bridge answers with id 0 when it cannot tie an error to a request, so
+      // the error text is the only clue to what went wrong on its side.
+      bridgeLog("warn", "unexpected response", { detail: { id: message.id, error: message.error } });
       return;
     }
     this.#pending.delete(message.id);
