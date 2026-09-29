@@ -52,6 +52,7 @@ export const ar: Record<I18nKey, string> = {
   "tab.overview": "نظرة عامة",
   "tab.performance": "الأداء",
   "tab.buttons": "الأزرار",
+  "tab.macro": "الماكرو",
   "tab.profiles": "الملفات",
   "tab.advanced": "متقدم",
   "tab.lighting": "الإضاءة",

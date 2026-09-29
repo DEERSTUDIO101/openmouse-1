@@ -63,6 +63,18 @@ test("pid matches prefer the row whose brand matches the device", () => {
   assert.equal(result.pageModel, "G23 V2 (SE / Pro)");
 });
 
+test("M2-NEX resolves to the Noir Gear supported row despite the shared OEM PID", () => {
+  const result = crosscheckSupportedDevices(
+    device({ brand: "Noir Gear", name: "M2-NEX", vendorId: 0xa8a4, productId: 0x2255 }),
+    "pass",
+  );
+  assert.equal(result.listed, true);
+  assert.equal(result.matchedBy, "pid");
+  assert.equal(result.status, "supported");
+  assert.equal(result.pageModel, "M2-NEX");
+  assert.match(result.detail, /already listed as Supported/);
+});
+
 test("brand+model name match on a likely row with a passing run qualifies for Supported", () => {
   const result = crosscheckSupportedDevices(
     device({ brand: "ATK", name: "F1 Ultimate" }),

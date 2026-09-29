@@ -52,6 +52,7 @@ export const zh: Record<I18nKey, string> = {
   "tab.overview": "概览",
   "tab.performance": "性能",
   "tab.buttons": "按键",
+  "tab.macro": "宏",
   "tab.profiles": "配置文件",
   "tab.advanced": "高级",
   "tab.lighting": "灯光",

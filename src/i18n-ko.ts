@@ -52,6 +52,7 @@ export const ko: Record<I18nKey, string> = {
   "tab.overview": "개요",
   "tab.performance": "성능",
   "tab.buttons": "버튼",
+  "tab.macro": "매크로",
   "tab.profiles": "프로필",
   "tab.advanced": "고급",
   "tab.lighting": "조명",

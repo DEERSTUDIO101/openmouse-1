@@ -13,6 +13,7 @@ export interface CardAvailability {
   signal: boolean;
   debounce: boolean;
   sleep: boolean;
+  ksnakeScroll: boolean;
   lowPower: boolean;
   processing: boolean;
   ninjutsoSensor: boolean;
@@ -35,6 +36,7 @@ export interface CardAvailability {
   pulsarPro: boolean;
   onboardProfiles: boolean;
   buttonMapping: boolean;
+  ksnakeMacros: boolean;
   powerMode: boolean;
   profiles: boolean;
   keychronNapeLayers: boolean;
@@ -53,6 +55,7 @@ const NOTHING: CardAvailability = {
   signal: false,
   debounce: false,
   sleep: false,
+  ksnakeScroll: false,
   lowPower: false,
   processing: false,
   ninjutsoSensor: false,
@@ -75,6 +78,7 @@ const NOTHING: CardAvailability = {
   pulsarPro: false,
   onboardProfiles: false,
   buttonMapping: false,
+  ksnakeMacros: false,
   powerMode: false,
   profiles: false,
   keychronNapeLayers: false,
@@ -89,6 +93,7 @@ export function cardAvailability(snapshot: ControlSnapshot): CardAvailability {
   const { traits, capabilities } = snapshot;
   const ready = !snapshot.settingsPending;
   const host = traits.advancedSection;
+  const isM2Nex = status.brand === "Noir Gear" && status.name === "M2-NEX";
 
   const sensor = !(!status.gamingSurfaceMode
     && Array.isArray(status.supportedLiftOffDistances)
@@ -130,9 +135,14 @@ export function cardAvailability(snapshot: ControlSnapshot): CardAvailability {
     lightforce: Boolean(status.lightforceSwitchMode),
     superstrike: traits.logitech && status.analogButtonTuning?.buttons.length === 2,
     lighting: Boolean(status.lighting || status.lightingZones?.length),
-    lightingAdvanced: host && Boolean(status.lighting || status.lightingZones?.length),
+    lightingAdvanced: host && !isM2Nex && Boolean(status.lighting || status.lightingZones?.length),
     onboardProfiles: (status.profileCount ?? 0) > 1 && status.activeProfile != null,
     buttonMapping: host && Boolean(status.buttonMappings) && Boolean(status.buttonOptions?.length),
+    // K-snake/M2-NEX exposes the macro write/commit path. The editor starts
+    // with local slots because this firmware does not expose a reliable macro
+    // read through the browser.
+    ksnakeMacros: ui?.family === "ksnake"
+      || (status.brand === "Noir Gear" && status.name === "M2-NEX"),
     powerMode: host && Boolean(status.powerModes?.length),
     profiles: traits.logitech
       && status.deviceMode !== undefined && status.deviceMode !== "Unknown",
@@ -143,7 +153,9 @@ export function cardAvailability(snapshot: ControlSnapshot): CardAvailability {
     signal: host && traits.signal,
     debounce: host && traits.debounce
       && status.debounceMs !== null && status.debounceMs !== undefined,
-    sleep: host && (traits.sleep || razerSleep) && ui?.hideSleepCard !== true,
+    sleep: host && (traits.sleep || capabilities?.sleepOptions != null || razerSleep)
+      && ui?.hideSleepCard !== true,
+    ksnakeScroll: ui?.family === "ksnake" && status.scrollDirection != null,
     lowPower: host && razerLowPower,
     processing: host && processing,
     ninjutsoSensor: host && traits.ninjutso

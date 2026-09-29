@@ -55,6 +55,7 @@ const en = {
   "tab.overview": "Overview",
   "tab.performance": "Performance",
   "tab.buttons": "Buttons",
+  "tab.macro": "Macro",
   "tab.profiles": "Profiles",
   "tab.advanced": "Advanced",
   "tab.lighting": "Lighting",

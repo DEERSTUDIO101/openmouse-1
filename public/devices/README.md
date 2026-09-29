@@ -145,6 +145,12 @@ trusted.
 4. Keep this note as provenance. Vendor product art — treat as a request
    pending licensing review.
 
+`noir-m2-nex.png` is reserved for the name-fallback mapping for Noir Gear's
+M2-NEX. A local render from the vendor configurator may be used for development
+previews, but it is deliberately not committed here. Before publishing the
+asset, Noir Gear must confirm redistribution rights or OpenMouse should use a
+maintainer-created silhouette instead.
+
 `attackshark-r5-ultra.png` is the top-down render of the Attack Shark R5 Ultra
 extracted from Attack Shark's official product gallery
 (`cdn.shopify.com/s/files/1/0823/5050/6282/files/R5ULTRA_C06_3.png`), keyed

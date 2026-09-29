@@ -52,6 +52,7 @@ export const ru: Record<I18nKey, string> = {
   "tab.overview": "Обзор",
   "tab.performance": "Производительность",
   "tab.buttons": "Кнопки",
+  "tab.macro": "Макрос",
   "tab.profiles": "Профили",
   "tab.advanced": "Дополнительно",
   "tab.lighting": "Подсветка",

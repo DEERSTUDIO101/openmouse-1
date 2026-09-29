@@ -330,6 +330,62 @@ test("the generic button card follows the K-snake key-map read", () => {
   assert.equal(silent.buttonMapping, false);
 });
 
+test("a K-snake sleep capability exposes the shared auto-sleep card", () => {
+  const has = cardAvailability(snapshot({
+    status: {
+      brand: "Noir Gear",
+      ui: { family: "ksnake", showAdvancedSection: true },
+      sleepTimeout: 300,
+    },
+    capabilities: { sleepOptions: [60, 180, 300] },
+  }));
+  assert.equal(has.sleep, true);
+});
+
+test("a K-snake config exposes its lighting and scroll controls", () => {
+  const has = cardAvailability(snapshot({
+    status: {
+      brand: "Noir Gear",
+      ui: { family: "ksnake", showAdvancedSection: true },
+      lighting: {
+        zone: "Mouse",
+        modes: ["Off", "Wave"],
+        mode: "Wave",
+        color: null,
+        color2: null,
+        colorModes: [],
+        dualColorModes: [],
+        reactiveModes: [],
+        speeds: [],
+        speed: null,
+      },
+      scrollDirection: "Forward",
+    },
+  }));
+  assert.equal(has.lighting, true);
+  assert.equal(has.ksnakeScroll, true);
+});
+
+test("M2-NEX exposes the macro capability even when its UI family is absent", () => {
+  const has = cardAvailability(snapshot({
+    status: { brand: "Noir Gear", name: "M2-NEX", ui: { showAdvancedSection: true } },
+  }));
+  assert.equal(has.ksnakeMacros, true);
+});
+
+test("M2-NEX keeps lighting out of Advanced", () => {
+  const has = cardAvailability(snapshot({
+    status: {
+      brand: "Noir Gear",
+      name: "M2-NEX",
+      ui: { family: "ksnake", showAdvancedSection: true },
+      lighting: {} as never,
+    },
+  }));
+  assert.equal(has.lighting, true);
+  assert.equal(has.lightingAdvanced, false);
+});
+
 test("the Incott card follows the fields the device reported, not a brand trait", () => {
   // Wireless: both controls are present.
   const wireless = cardAvailability(snapshot({

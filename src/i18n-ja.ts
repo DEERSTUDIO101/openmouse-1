@@ -52,6 +52,7 @@ export const ja: Record<I18nKey, string> = {
   "tab.overview": "概要",
   "tab.performance": "パフォーマンス",
   "tab.buttons": "ボタン",
+  "tab.macro": "マクロ",
   "tab.profiles": "プロファイル",
   "tab.advanced": "詳細設定",
   "tab.lighting": "ライティング",

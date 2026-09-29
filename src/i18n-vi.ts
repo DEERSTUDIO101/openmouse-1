@@ -52,6 +52,7 @@ export const vi: Record<I18nKey, string> = {
   "tab.overview": "Tổng quan",
   "tab.performance": "Hiệu năng",
   "tab.buttons": "Nút",
+  "tab.macro": "Macro",
   "tab.profiles": "Profiles",
   "tab.advanced": "Nâng cao",
   "tab.lighting": "Đèn",

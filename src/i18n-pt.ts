@@ -52,6 +52,7 @@ export const pt: Record<I18nKey, string> = {
   "tab.overview": "Visão geral",
   "tab.performance": "Desempenho",
   "tab.buttons": "Botões",
+  "tab.macro": "Macro",
   "tab.profiles": "Perfis",
   "tab.advanced": "Avançado",
   "tab.lighting": "Iluminação",

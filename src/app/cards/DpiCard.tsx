@@ -47,6 +47,7 @@ function DpiStageEditor({
 
   const naturalMode: "logitech" | "stage" | "generic" = isLogitech ? "logitech" : isStage ? "stage" : "generic";
   const mode: "logitech" | "stage" | "generic" = editorView === "single" ? "generic" : naturalMode;
+  const showM2NexStageColors = mode === "stage" && status?.brand === "Noir Gear" && status.name === "M2-NEX";
   const limits = snapshot.profile.slotLimits;
   // The single-DPI (generic) view writes the live DPI, not the profile, so it
   // must not be gated behind the profile's slot-write lock.
@@ -262,7 +263,7 @@ function DpiStageEditor({
   const enabledCount = rows.filter((row) => row.enabled).length;
 
   return (
-    <div id="dpi-stage-editor" className={`dpi-editor mode-${mode}`}>
+    <div id="dpi-stage-editor" className={`dpi-editor mode-${mode}${showM2NexStageColors ? " has-m2nex-stage-colors" : ""}`}>
       <div className="dpi-editor-bar">
         <span className="dpi-editor-bar-label">
           {t(locale, mode === "logitech" ? "dpi.slotsInUse" : mode === "stage" ? "dpi.stagesInUse" : "dpi.presetsInUse")}
@@ -278,8 +279,12 @@ function DpiStageEditor({
             ? compactIndex(index) === snapshot.dpiSlotPlan.defaultIndex
             : false;
           const highlighted = mode === "generic" ? row.enabled : mode === "stage" ? isActive === true : isStarting;
+          const stageColorClass = showM2NexStageColors ? ` m2nex-stage-${index + 1}` : "";
           return (
-            <div key={index} className={`dpi-editor-row${row.enabled ? "" : " is-off"}${highlighted ? " is-active" : ""}`}>
+            <div
+              key={index}
+              className={`dpi-editor-row${row.enabled ? "" : " is-off"}${highlighted ? " is-active" : ""}${stageColorClass}`}
+            >
               <input
                 type="checkbox"
                 className="dpi-editor-tick"
@@ -296,7 +301,8 @@ function DpiStageEditor({
                 aria-pressed={highlighted}
                 onClick={() => setActive(index)}
               >
-                {index + 1}
+                {showM2NexStageColors ? <span className="dpi-editor-stage-swatch" aria-hidden="true" /> : null}
+                <span>{index + 1}</span>
               </button>
               <input
                 type="number"

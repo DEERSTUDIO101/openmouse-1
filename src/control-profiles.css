@@ -246,6 +246,20 @@
 .dpi-editor-row > input.dpi-editor-value:hover:not(:disabled) { border-color:var(--ghost) }
 .dpi-editor-row > input.dpi-editor-value:focus-visible { outline:2px solid var(--ui-accent);outline-offset:1px }
 .dpi-editor-row > input[type="range"].dpi-editor-slider { width:100%;min-width:0;height:1.2rem;margin:0;accent-color:var(--ui-accent);cursor:pointer }
+.dpi-editor.has-m2nex-stage-colors { --m2nex-stage-1:#ff0000;--m2nex-stage-2:#00ff00;--m2nex-stage-3:#0000ff;--m2nex-stage-4:#ffff00;--m2nex-stage-5:#00ffff;--m2nex-stage-6:#ff00ff }
+.dpi-editor.has-m2nex-stage-colors .m2nex-stage-1 { --dpi-stage-color:var(--m2nex-stage-1) }
+.dpi-editor.has-m2nex-stage-colors .m2nex-stage-2 { --dpi-stage-color:var(--m2nex-stage-2) }
+.dpi-editor.has-m2nex-stage-colors .m2nex-stage-3 { --dpi-stage-color:var(--m2nex-stage-3) }
+.dpi-editor.has-m2nex-stage-colors .m2nex-stage-4 { --dpi-stage-color:var(--m2nex-stage-4) }
+.dpi-editor.has-m2nex-stage-colors .m2nex-stage-5 { --dpi-stage-color:var(--m2nex-stage-5) }
+.dpi-editor.has-m2nex-stage-colors .m2nex-stage-6 { --dpi-stage-color:var(--m2nex-stage-6) }
+.dpi-editor.has-m2nex-stage-colors .dpi-editor-row { grid-template-columns:1.4rem 2.35rem 5.2rem minmax(0,1fr) }
+.dpi-editor.has-m2nex-stage-colors .dpi-editor-row > button.dpi-editor-index { display:inline-flex;align-items:center;justify-content:center;gap:.28rem;border-color:color-mix(in srgb, var(--dpi-stage-color) 58%, var(--border));box-shadow:inset 0 -2px 0 var(--dpi-stage-color) }
+.dpi-editor.has-m2nex-stage-colors .dpi-editor-row > button.dpi-editor-index:hover:not(:disabled) { border-color:var(--dpi-stage-color);color:var(--dpi-stage-color) }
+.dpi-editor.has-m2nex-stage-colors .dpi-editor-row.is-active > button.dpi-editor-index { border-color:var(--dpi-stage-color);background:color-mix(in srgb, var(--dpi-stage-color) 15%, var(--surface-raised));color:var(--dpi-stage-color);box-shadow:inset 0 -2px 0 var(--dpi-stage-color),0 0 0 1px color-mix(in srgb, var(--dpi-stage-color) 28%, transparent) }
+.dpi-editor.has-m2nex-stage-colors .dpi-editor-row > input[type="number"].dpi-editor-value { border-color:color-mix(in srgb, var(--dpi-stage-color) 42%, var(--border));color:var(--dpi-stage-color) }
+.dpi-editor.has-m2nex-stage-colors .dpi-editor-row > input[type="range"].dpi-editor-slider { accent-color:var(--dpi-stage-color) }
+.dpi-editor-stage-swatch { width:.42rem;height:.42rem;flex:0 0 auto;border-radius:999px;background:var(--dpi-stage-color);box-shadow:0 0 0 1px color-mix(in srgb, var(--dpi-stage-color) 65%, white) }
 .dpi-editor-lod { width:7rem;justify-self:end }
 .slot-lod-list { display:grid;gap:.35rem }
 .slot-lod-row { display:flex;align-items:center;justify-content:space-between;gap:.5rem }

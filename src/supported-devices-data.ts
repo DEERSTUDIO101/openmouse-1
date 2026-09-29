@@ -317,6 +317,7 @@ export const SUPPORTED_DEVICES: readonly SupportedDeviceEntry[] = [
   { brand: "Cooler Master", model: "MasterMouse MM720", status: "driver" },
   { brand: "Cooler Master", model: "MM711", status: "driver" },
   { brand: "K-snake", model: "X11", status: "supported", pids: [0x2255] },
+  { brand: "Noir Gear", model: "M2-NEX", status: "supported", pids: [0x2255] },
   { brand: "Hitscan", model: "Hyperlight", status: "unknown" },
   { brand: "RAWM", model: "Leviathan V4", status: "unknown" },
   { brand: "AJAZZ", model: "AJ159 Apex", status: "unknown" },
