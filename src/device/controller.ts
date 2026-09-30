@@ -2021,9 +2021,20 @@ async function waitForControllerIdle(): Promise<void> {
   }
 }
 
+/** A wedged OpenMouse Bridge rejects getDevices(); toast it instead of failing silently. */
+async function authorizedDeviceGroups(): Promise<HIDDevice[][] | null> {
+  try {
+    return logicalDeviceGroups(await navigator.hid?.getDevices() ?? []);
+  } catch (error) {
+    toastForError("Connection failed", error);
+    return null;
+  }
+}
+
 export async function selectAuthorizedDevice(index: number): Promise<void> {
   await waitForControllerIdle();
-  const groups = logicalDeviceGroups(await navigator.hid?.getDevices() ?? []);
+  const groups = await authorizedDeviceGroups();
+  if (!groups) return;
   const group = groups[index];
   if (!group) return;
   if (group.some((device) => device === activeDevice) && latestDeviceStatus !== null) return;
@@ -2057,7 +2068,8 @@ export async function selectAuthorizedDevice(index: number): Promise<void> {
 /** Open the given device's dashboard from the picker, connecting it first when needed. */
 export async function openDeviceOverview(index: number): Promise<void> {
   await waitForControllerIdle();
-  const groups = logicalDeviceGroups(await navigator.hid?.getDevices() ?? []);
+  const groups = await authorizedDeviceGroups();
+  if (!groups) return;
   const group = groups[index];
   if (!group) {
     await connect();
