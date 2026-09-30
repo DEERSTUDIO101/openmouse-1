@@ -69,6 +69,13 @@
   background: var(--ink);
   font-family: var(--font-sans);
   font-synthesis: none;
+  /* Per-stage DPI ramp used by the M2-NEX editor (has-m2nex-stage-colors). */
+  --stage-color-1: #ff5a5a;
+  --stage-color-2: #4ade80;
+  --stage-color-3: #60a5fa;
+  --stage-color-4: #facc15;
+  --stage-color-5: #22d3ee;
+  --stage-color-6: #e879f9;
 }
 
 * { box-sizing: border-box; }
@@ -159,6 +166,12 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
   --tone-mantle: #efefea;
   --tone-s0: #fbfbf8;
   --tone-s1: #f5f5f1;
+  --stage-color-1: #d92d20;
+  --stage-color-2: #1a9e4b;
+  --stage-color-3: #2270c9;
+  --stage-color-4: #b7791f;
+  --stage-color-5: #0e8f9e;
+  --stage-color-6: #b23bbf;
 }
 /* Light-theme battery icons: the base types hard-code near-white shades that
    would vanish on light surfaces. */

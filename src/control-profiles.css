@@ -252,7 +252,10 @@
 .dpi-editor-row > input.dpi-editor-value:hover:not(:disabled) { border-color:var(--ghost) }
 .dpi-editor-row > input.dpi-editor-value:focus-visible { outline:2px solid var(--ui-accent);outline-offset:1px }
 .dpi-editor-row > input[type="range"].dpi-editor-slider { width:100%;min-width:0;height:1.2rem;margin:0;accent-color:var(--ui-accent);cursor:pointer }
-.dpi-editor.has-m2nex-stage-colors { --m2nex-stage-1:#ff0000;--m2nex-stage-2:#00ff00;--m2nex-stage-3:#0000ff;--m2nex-stage-4:#ffff00;--m2nex-stage-5:#00ffff;--m2nex-stage-6:#ff00ff }
+/* Per-stage colour ramp for the M2-NEX editor. Kept as theme tokens so the
+   cards stay legible in light and dark themes (the raw marker hues are too
+   bright against the light surface). */
+.dpi-editor.has-m2nex-stage-colors { --m2nex-stage-1:var(--stage-color-1);--m2nex-stage-2:var(--stage-color-2);--m2nex-stage-3:var(--stage-color-3);--m2nex-stage-4:var(--stage-color-4);--m2nex-stage-5:var(--stage-color-5);--m2nex-stage-6:var(--stage-color-6) }
 .dpi-editor.has-m2nex-stage-colors .m2nex-stage-1 { --dpi-stage-color:var(--m2nex-stage-1) }
 .dpi-editor.has-m2nex-stage-colors .m2nex-stage-2 { --dpi-stage-color:var(--m2nex-stage-2) }
 .dpi-editor.has-m2nex-stage-colors .m2nex-stage-3 { --dpi-stage-color:var(--m2nex-stage-3) }

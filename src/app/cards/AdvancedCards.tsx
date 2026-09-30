@@ -291,18 +291,19 @@ export function SleepCard({ snapshot }: { snapshot: ControlSnapshot }): ReactNod
 /** K-snake stores the wheel direction in its persistent config block. */
 export function KsnakeScrollCard({ snapshot }: { snapshot: ControlSnapshot }): ReactNode {
   const status = snapshot.status;
+  const locale = snapshot.preferences.locale;
   if (status?.ui?.family !== "ksnake" || status.scrollDirection == null) return null;
   const staged = snapshot.pending.keys.includes("ksnake-scroll-direction");
   return (
     <article id="ksnake-scroll-settings" className={`setting-card${staged ? " is-staged" : ""}`}>
       <div className="setting-heading compact">
-        <div><p>WHEEL</p><h2>Scroll direction</h2></div>
+        <div><p>{t(locale, "adv.scrollWheel")}</p><h2>{t(locale, "adv.scrollDirection")}</h2></div>
       </div>
       <div className="button-map-list">
         <label className="button-map-row" htmlFor="ksnake-scroll-direction">
           <span className="button-map-control">
             <span className="button-map-index" aria-hidden="true">W</span>
-            <span className="button-map-name">Wheel</span>
+            <span className="button-map-name">{t(locale, "adv.scrollWheel")}</span>
           </span>
           <span className="button-map-connector" aria-hidden="true">to</span>
           <span className="button-map-select-wrap">
@@ -314,13 +315,13 @@ export function KsnakeScrollCard({ snapshot }: { snapshot: ControlSnapshot }): R
                 event.currentTarget.value as NonNullable<typeof status.scrollDirection>,
               )}
             >
-              <option value="Forward">Forward</option>
-              <option value="Reverse">Reverse</option>
+              <option value="Forward">{t(locale, "conn.forward")}</option>
+              <option value="Reverse">{t(locale, "conn.reverse")}</option>
             </select>
           </span>
         </label>
       </div>
-      <small className="setting-note">Stored in the mouse and restored when OpenMouse reconnects.</small>
+      <small className="setting-note">{t(locale, "adv.scrollStored")}</small>
     </article>
   );
 }
@@ -1539,6 +1540,7 @@ function cloneKsnakeMacroProfile(profile: KsnakeMacroProfile | undefined): Ksnak
  */
 export function KsnakeMacroCard({ snapshot }: { snapshot: ControlSnapshot }): ReactNode {
   const status = snapshot.status;
+  const locale = snapshot.preferences.locale;
   const isM2Nex = status?.brand === "Noir Gear" && status.name === "M2-NEX";
   const macroCapable = status?.ui?.family === "ksnake" || isM2Nex;
   // Keep the card usable while an older hot-reloaded controller snapshot is
@@ -1727,8 +1729,8 @@ export function KsnakeMacroCard({ snapshot }: { snapshot: ControlSnapshot }): Re
   if (snapshot.ksnakeMacrosLoading) {
     return (
       <article id="ksnake-macro-settings" className="setting-card">
-        <div className="setting-heading compact"><div><p>MACRO EDITOR</p><h2>Build a macro</h2></div></div>
-        <p className="field-note">Preparing the 32 macro slots…</p>
+        <div className="setting-heading compact"><div><p>{t(locale, "macro.overline")}</p><h2>{t(locale, "macro.build")}</h2></div></div>
+        <p className="field-note">{t(locale, "macro.loading")}</p>
       </article>
     );
   }
@@ -1736,9 +1738,9 @@ export function KsnakeMacroCard({ snapshot }: { snapshot: ControlSnapshot }): Re
   if (snapshot.ksnakeMacrosError !== null) {
     return (
       <article id="ksnake-macro-settings" className="setting-card">
-        <div className="setting-heading compact"><div><p>MACRO EDITOR</p><h2>Build a macro</h2></div></div>
+        <div className="setting-heading compact"><div><p>{t(locale, "macro.overline")}</p><h2>{t(locale, "macro.build")}</h2></div></div>
         <p className="field-note">{snapshot.ksnakeMacrosError}</p>
-        <div className="setting-action"><button type="button" onClick={() => control.loadKsnakeMacros()}>Retry</button></div>
+        <div className="setting-action"><button type="button" onClick={() => control.loadKsnakeMacros()}>{t(locale, "set.retry")}</button></div>
       </article>
     );
   }
@@ -1748,24 +1750,22 @@ export function KsnakeMacroCard({ snapshot }: { snapshot: ControlSnapshot }): Re
     <article id="ksnake-macro-settings" className={`setting-card${staged ? " is-staged" : ""}`}>
       <div className="setting-heading ksnake-macro-heading">
         <div>
-          <p>MACRO EDITOR</p>
-          <h2>Build a macro</h2>
-          <p className="ksnake-macro-lead">Choose a slot, add actions, then Save. Press Apply to send it to the mouse; assign it in Buttons.</p>
+          <p>{t(locale, "macro.overline")}</p>
+          <h2>{t(locale, "macro.build")}</h2>
+          <p className="ksnake-macro-lead">{t(locale, "macro.lead")}</p>
         </div>
       </div>
       <p className="ksnake-macro-notice">
-        {isM2Nex
-          ? "M2-NEX slots start blank in OpenMouse. Saving rewrites the onboard macro table."
-          : "Saving updates the onboard macro table on the mouse."}
+        {isM2Nex ? t(locale, "macro.noticeM2nex") : t(locale, "macro.notice")}
       </p>
       <label className="ksnake-macro-slot-picker">
-        <span>Macro slot</span>
+        <span>{t(locale, "macro.slotLabel")}</span>
         <select value={slot} disabled={controlsDisabled} onChange={(event) => setSlot(Number(event.currentTarget.value))}>
           {profiles.map((profile, index) => {
             const stepCount = index === slot
               ? (isRecording ? recordedSteps.length : draft.steps.length)
               : profile.steps.length;
-            return <option key={index} value={index}>Macro {index + 1}{stepCount ? ` · ${stepCount} steps` : " · empty"}</option>;
+            return <option key={index} value={index}>{t(locale, "macro.option")} {index + 1}{stepCount ? ` · ${tp(locale, "macro.steps", { n: stepCount })}` : ` · ${t(locale, "macro.empty")}`}</option>;
           })}
         </select>
       </label>
@@ -1773,36 +1773,36 @@ export function KsnakeMacroCard({ snapshot }: { snapshot: ControlSnapshot }): Re
         <div className="ksnake-macro-recorder-status">
           <span className="ksnake-macro-recorder-dot" aria-hidden="true" />
           <div>
-            <strong>{isRecording ? "Recording input" : "Add actions"}</strong>
+            <strong>{isRecording ? t(locale, "macro.recording") : t(locale, "macro.addActions")}</strong>
             <span>{isRecording
-              ? `${recordedSteps.length} events · Press Esc to stop`
-              : "Record input or add an action manually."}</span>
+              ? tp(locale, "macro.eventsHint", { n: recordedSteps.length })
+              : t(locale, "macro.recorderHint")}</span>
           </div>
         </div>
         <div className="ksnake-macro-recorder-tools">
           <label className="ksnake-macro-timing-picker">
-            <span>Timing</span>
+            <span>{t(locale, "macro.timing")}</span>
             <select
               value={timingMode}
               disabled={disabled || isRecording}
               data-macro-recorder-control
               onChange={(event) => changeTimingMode(event.currentTarget.value as KsnakeMacroTimingMode)}
             >
-              <option value="no-delay">Fast · no delay</option>
-              <option value="recorded">Recorded timing</option>
-              <option value="fixed">Fixed delay</option>
+              <option value="no-delay">{t(locale, "macro.timingFast")}</option>
+              <option value="recorded">{t(locale, "macro.timingRecorded")}</option>
+              <option value="fixed">{t(locale, "macro.timingFixed")}</option>
             </select>
           </label>
           {timingMode === "fixed" ? (
             <label className="ksnake-macro-fixed-delay-picker">
-              <span>Delay</span>
+              <span>{t(locale, "macro.delay")}</span>
               <span className="ksnake-macro-fixed-delay-control">
                 <input
                   type="number"
                   min={0}
                   max={65535}
                   step={1}
-                  aria-label="Fixed delay in milliseconds"
+                  aria-label={t(locale, "macro.delayAria")}
                   value={fixedDelayMs}
                   disabled={disabled || isRecording}
                   data-macro-recorder-control
@@ -1814,15 +1814,15 @@ export function KsnakeMacroCard({ snapshot }: { snapshot: ControlSnapshot }): Re
           ) : null}
           {isRecording ? (
             <div className="ksnake-macro-recorder-actions">
-              <button className="ksnake-macro-stop" type="button" data-macro-recorder-control onClick={finishRecording}>Stop recording</button>
-              <button className="ksnake-macro-cancel" type="button" data-macro-recorder-control onClick={cancelRecording}>Cancel</button>
+              <button className="ksnake-macro-stop" type="button" data-macro-recorder-control onClick={finishRecording}>{t(locale, "macro.stopRecording")}</button>
+              <button className="ksnake-macro-cancel" type="button" data-macro-recorder-control onClick={cancelRecording}>{t(locale, "set.cancel")}</button>
             </div>
           ) : (
             <div className="ksnake-macro-recorder-actions">
-              <button className="ksnake-macro-record" type="button" data-macro-recorder-control onClick={startRecording} disabled={disabled}>Record input</button>
+              <button className="ksnake-macro-record" type="button" data-macro-recorder-control onClick={startRecording} disabled={disabled}>{t(locale, "macro.recordInput")}</button>
               <button className="ksnake-macro-manual-add" type="button" data-macro-recorder-control onClick={addStep} disabled={controlsDisabled}>
                 <Plus size={15} strokeWidth={2.2} aria-hidden="true" />
-                Add manually
+                {t(locale, "macro.addManually")}
               </button>
             </div>
           )}
@@ -1831,11 +1831,11 @@ export function KsnakeMacroCard({ snapshot }: { snapshot: ControlSnapshot }): Re
       {isRecording ? (
         <div className="ksnake-macro-recording-list">
           <div className="ksnake-macro-recording-list-heading">
-            <span>Live event list</span>
-            <span>{recordedSteps.length} events</span>
+            <span>{t(locale, "macro.liveEvents")}</span>
+            <span>{tp(locale, "macro.events", { n: recordedSteps.length })}</span>
           </div>
           {recordedSteps.length === 0 ? (
-            <p className="ksnake-macro-recording-empty">Press a key or mouse button to add the first event.</p>
+            <p className="ksnake-macro-recording-empty">{t(locale, "macro.recordingEmpty")}</p>
           ) : (
             <ol>
               {recordedSteps.map((step, index) => (
@@ -1858,15 +1858,15 @@ export function KsnakeMacroCard({ snapshot }: { snapshot: ControlSnapshot }): Re
         <div className="ksnake-macro-steps">
           {draft.steps.length === 0 ? (
             <div className="ksnake-macro-empty">
-              <strong>No actions in this slot</strong>
-              <span>Choose Record input or Add manually above to get started.</span>
+              <strong>{t(locale, "macro.noActions")}</strong>
+              <span>{t(locale, "macro.noActionsHint")}</span>
             </div>
           ) : null}
           {draft.steps.map((step, index) => (
             <div className="ksnake-macro-step" key={`${slot}-${index}`}>
               <span className="ksnake-macro-step-number">{String(index + 1).padStart(2, "0")}</span>
               <label className="ksnake-macro-step-field">
-                <span>Input</span>
+                <span>{t(locale, "macro.colInput")}</span>
                 <select
                   aria-label={`Macro ${slot + 1} step ${index + 1} type`}
                   value={step.type}
@@ -1877,7 +1877,7 @@ export function KsnakeMacroCard({ snapshot }: { snapshot: ControlSnapshot }): Re
                 </select>
               </label>
               <label className="ksnake-macro-step-field">
-                <span>Action</span>
+                <span>{t(locale, "macro.colAction")}</span>
                 <select
                   aria-label={`Macro ${slot + 1} step ${index + 1} action`}
                   value={step.action}
@@ -1887,7 +1887,7 @@ export function KsnakeMacroCard({ snapshot }: { snapshot: ControlSnapshot }): Re
                   {KSNAKE_MACRO_ACTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                 </select>
               </label>
-              <label className="ksnake-macro-number ksnake-macro-code-field">Code
+              <label className="ksnake-macro-number ksnake-macro-code-field">{t(locale, "macro.colCode")}
                 <input
                   type="number"
                   min={0}
@@ -1897,7 +1897,7 @@ export function KsnakeMacroCard({ snapshot }: { snapshot: ControlSnapshot }): Re
                   onChange={(event) => updateStep(index, { code: Math.min(255, Math.max(0, Number(event.currentTarget.value) || 0)) })}
                 />
               </label>
-              <label className="ksnake-macro-number ksnake-macro-delay-field">Delay after
+              <label className="ksnake-macro-number ksnake-macro-delay-field">{t(locale, "macro.colDelay")}
                 <input
                   type="number"
                   min={0}
@@ -1908,7 +1908,7 @@ export function KsnakeMacroCard({ snapshot }: { snapshot: ControlSnapshot }): Re
                 />
               </label>
               <small className="ksnake-macro-preview" title={ksnakeMacroCodeLabel(step.type, step.code)}>{ksnakeMacroCodeLabel(step.type, step.code)}</small>
-              <button type="button" className="ksnake-macro-delete" disabled={controlsDisabled} onClick={() => removeStep(index)} aria-label={`Remove macro step ${index + 1}`} title="Remove action">
+              <button type="button" className="ksnake-macro-delete" disabled={controlsDisabled} onClick={() => removeStep(index)} aria-label={tp(locale, "macro.removeStep", { n: index + 1 })} title={t(locale, "macro.removeStepTitle")}>
                 <Trash2 size={16} strokeWidth={2} aria-hidden="true" />
               </button>
             </div>
@@ -1918,13 +1918,13 @@ export function KsnakeMacroCard({ snapshot }: { snapshot: ControlSnapshot }): Re
       <div className="setting-action ksnake-macro-actions">
         <button className="ksnake-macro-save" type="button" onClick={() => control.applyKsnakeMacro(slot, draft)} disabled={controlsDisabled}>
           <Save size={16} strokeWidth={2.2} aria-hidden="true" />
-          Save macro
+          {t(locale, "macro.save")}
         </button>
-        <button className="ksnake-macro-clear" type="button" onClick={() => setDraft({ steps: [] })} disabled={controlsDisabled || draft.steps.length === 0}>Clear slot</button>
+        <button className="ksnake-macro-clear" type="button" onClick={() => setDraft({ steps: [] })} disabled={controlsDisabled || draft.steps.length === 0}>{t(locale, "macro.clearSlot")}</button>
       </div>
       <details className="ksnake-macro-help">
-        <summary>Need help with codes?</summary>
-        <p>Delay after is the pause after that event. Keyboard codes use standard HID usage values. Modifier codes use masks 1/2/4/8/16/32/64/128; mouse codes are 1 left, 2 right, 4 middle, 8 back, 16 forward. A 0 ms delay uses the device minimum.</p>
+        <summary>{t(locale, "macro.helpToggle")}</summary>
+        <p>{t(locale, "macro.helpBody")}</p>
       </details>
     </article>
   );
@@ -1970,7 +1970,15 @@ export function ButtonMappingCard({ snapshot }: { snapshot: ControlSnapshot }): 
                   id={selectId}
                   value={options.includes(assigned) ? assigned : ""}
                   disabled={isFixed}
-                  onChange={(event) => control.applyDeviceButtonMapping(button, event.currentTarget.value)}
+                  onChange={(event) => {
+                    // M2-NEX edits its selected local profile slot; every other
+                    // driver writes straight through to the device.
+                    if (selectedM2NexProfile) {
+                      control.updateM2NexProfileButton(button, event.currentTarget.value);
+                      return;
+                    }
+                    control.applyDeviceButtonMapping(button, event.currentTarget.value);
+                  }}
                 >
                   {/* A macro or an assignment this build cannot name still shows. */}
                   {!options.includes(assigned) && <option value="">{assigned}</option>}

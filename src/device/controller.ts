@@ -735,7 +735,7 @@ export function loadKsnakeMacros(): void {
   if (ksnakeMacrosLoading || ksnakeMacros !== null) return;
   const client = ksnakeMacroClient();
   if (!client) {
-    ksnakeMacrosError = "The connected M2-NEX driver does not expose onboard macro access yet.";
+    ksnakeMacrosError = st("m2nex.macrosUnavailable");
     emit();
     return;
   }
@@ -751,12 +751,12 @@ export function loadKsnakeMacros(): void {
 export function selectM2NexProfile(index: number): void {
   if (!isM2NexStatus() || !m2nexProfiles?.[index]) return;
   if (hasPendingChanges()) {
-    setReadStatus("Apply or discard current changes before switching profiles.");
+    setReadStatus(st("m2nex.switchBlocked"));
     return;
   }
   activeM2NexProfile = index;
   setEditorToM2NexProfile();
-  setReadStatus(`${m2nexProfiles[index].name} selected. Apply it when you are ready.`);
+  setReadStatus(st("m2nex.selected", { name: m2nexProfiles[index].name }));
   emit();
 }
 
@@ -770,7 +770,7 @@ export function updateM2NexProfileButton(button: string, action: string): void {
     : profile);
   m2nexProfileDirty = true;
   persistM2NexProfiles();
-  setReadStatus(`${current.name} updated. Apply the profile to send it to the mouse.`);
+  setReadStatus(st("m2nex.updated", { name: current.name }));
   emit();
 }
 
@@ -792,8 +792,8 @@ export function saveCurrentM2NexProfile(): void {
     : profile);
   m2nexProfileDirty = false;
   persistM2NexProfiles();
-  setReadStatus(`${current.name} saved from the current mouse settings.`);
-  pushToast("success", `${current.name} saved`, "Buttons, DPI, polling rate, and available macros are stored locally.");
+  setReadStatus(st("m2nex.saveDone", { name: current.name }));
+  pushToast("success", st("m2nex.saved", { name: current.name }), st("m2nex.savedDetail"));
   emit();
 }
 
@@ -801,7 +801,7 @@ export function saveCurrentM2NexProfile(): void {
 export async function applyM2NexProfile(index = activeM2NexProfile): Promise<void> {
   if (!isM2NexStatus() || !latestDeviceStatus || !m2nexProfiles?.[index]) return;
   if (hasPendingChanges()) {
-    setReadStatus("Apply or discard the current changes before applying a profile.");
+    setReadStatus(st("m2nex.applyBlocked"));
     return;
   }
   if (settingInProgress) {
@@ -814,14 +814,14 @@ export async function applyM2NexProfile(index = activeM2NexProfile): Promise<voi
     || typeof rawClient.setDpiStageValue !== "function"
     || typeof rawClient.setActiveDpiStage !== "function"
     || typeof rawClient.setPollingRate !== "function") {
-    setReadStatus("The connected M2-NEX interface cannot apply a complete profile yet.");
+    setReadStatus(st("m2nex.incomplete"));
     return;
   }
   const profile = m2nexProfiles[index];
   const before = latestDeviceStatus;
   activeM2NexProfile = index;
   settingInProgress = true;
-  pendingStatusText = `Applying ${profile.name}…`;
+  pendingStatusText = st("m2nex.applyProgress", { name: profile.name });
   readStatus = pendingStatusText;
   emit();
   try {
@@ -858,7 +858,7 @@ export async function applyM2NexProfile(index = activeM2NexProfile): Promise<voi
       await rawClient.setActiveDpiStage(profile.activeDpiStage);
     }
     if (before.pollingRateHz !== profile.pollingRateHz) {
-      pendingStatusText = `Applying ${profile.name}: polling rate…`;
+      pendingStatusText = st("m2nex.applyPolling", { name: profile.name });
       readStatus = pendingStatusText;
       emit();
       await rawClient.setPollingRate(profile.pollingRateHz);
@@ -868,12 +868,12 @@ export async function applyM2NexProfile(index = activeM2NexProfile): Promise<voi
     applyStatus(status);
     m2nexProfileDirty = false;
     persistM2NexProfiles();
-    setReadStatus(`${profile.name} applied to M2-NEX.`);
-    pushToast("success", `${profile.name} applied`, "The mouse is now using this profile.");
+    setReadStatus(st("m2nex.applyDone", { name: profile.name }));
+    pushToast("success", st("m2nex.applied", { name: profile.name }), st("m2nex.appliedDetail"));
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to apply the M2-NEX profile.";
+    const message = error instanceof Error ? error.message : st("m2nex.applyError");
     setReadStatus(message);
-    pushToast("error", "Profile apply failed", message);
+    pushToast("error", st("m2nex.applyFailed"), message);
   } finally {
     pendingStatusText = null;
     settingInProgress = false;
@@ -886,7 +886,7 @@ export function applyKsnakeMacro(slot: number, profile: KsnakeMacroProfile): voi
   if (!Number.isInteger(slot) || slot < 0 || slot >= 32) return;
   const current = stagedKsnakeMacros ?? ksnakeMacros;
   if (!current) {
-    setReadStatus("The macro editor is not ready yet. Reopen the Buttons tab and try again.");
+    setReadStatus(st("macro.notReady"));
     emit();
     return;
   }

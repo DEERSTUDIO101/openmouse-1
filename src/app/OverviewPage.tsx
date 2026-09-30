@@ -218,6 +218,7 @@ function DeviceShowcase({ snapshot }: {
 
 function M2NexProfileOverview({ snapshot }: { snapshot: ControlSnapshot }): ReactNode {
   const status = snapshot.status;
+  const locale = snapshot.preferences.locale;
   if (status?.brand !== "Noir Gear" || status.name !== "M2-NEX" || snapshot.m2nexProfiles === null) return null;
   const profile = snapshot.m2nexProfiles[snapshot.activeM2NexProfile];
   if (!profile) return null;
@@ -226,16 +227,16 @@ function M2NexProfileOverview({ snapshot }: { snapshot: ControlSnapshot }): Reac
     <section
       id="m2nex-profile-overview"
       className="m2nex-profile-overview"
-      aria-label="M2-NEX profile controls"
+      aria-label={t(locale, "m2nex.controls")}
     >
       <div className="m2nex-profile-overview-title">
-        <span>PROFILE</span>
-        <strong>M2-NEX</strong>
+        <span>{t(locale, "m2nex.overline")}</span>
+        <strong>{t(locale, "m2nex.label")}</strong>
       </div>
       <label className="m2nex-profile-overview-picker" htmlFor="m2nex-profile-overview-select">
         <select
           id="m2nex-profile-overview-select"
-          aria-label="Select M2-NEX profile"
+          aria-label={t(locale, "m2nex.select")}
           value={snapshot.activeM2NexProfile}
           disabled={snapshot.settingInProgress || snapshot.pending.busy}
           onChange={(event) => control.selectM2NexProfile(Number(event.currentTarget.value))}
@@ -246,7 +247,7 @@ function M2NexProfileOverview({ snapshot }: { snapshot: ControlSnapshot }): Reac
         </select>
       </label>
       <span className={`m2nex-profile-overview-state${snapshot.m2nexProfileDirty ? " is-dirty" : ""}`}>
-        {snapshot.m2nexProfileDirty ? "Pending" : "Saved"}
+        {snapshot.m2nexProfileDirty ? t(locale, "m2nex.pending") : t(locale, "m2nex.saved")}
       </span>
       <div className="m2nex-profile-overview-actions">
         <button
@@ -255,14 +256,14 @@ function M2NexProfileOverview({ snapshot }: { snapshot: ControlSnapshot }): Reac
           disabled={applyDisabled}
           onClick={() => void control.applyM2NexProfile()}
         >
-          Apply
+          {t(locale, "m2nex.apply")}
         </button>
         <button
           type="button"
           disabled={snapshot.settingInProgress}
           onClick={control.saveCurrentM2NexProfile}
         >
-          Save
+          {t(locale, "m2nex.save")}
         </button>
       </div>
     </section>
