@@ -165,7 +165,15 @@ const BUDGET_BYTES: Record<string, number> = {
   // WLmouse Beast X 4K driver wiring (#287, which also pulls its protocol codec
   // in through SUPPORTED_HID_FILTERS), and the Razer Bluetooth-mode notice
   // (#357). Measured aggregate is 1,850.7 kB, leaving ~29 kB of headroom.
-  ".js": 1_880_000,
+  // Raised to 2,085 kB for protocol 0.22.0 and the four device PRs that land
+  // with it: the Noir Gear M2-NEX integration (#402, local profile slots and
+  // the macro editor), the Keychron G3 Air / Launcher 8k-1k panel wiring
+  // (#408, #426), and the Rapoo VT9 Pro client (#422). Their protocol codecs
+  // (Keychron Launcher mouse catalog, Rapoo register codec, K-snake macro
+  // store) are pulled in through SUPPORTED_HID_FILTERS and the controllers,
+  // and the shared UI gained the macro-card and profile-overview CSS. Measured
+  // aggregate is 1,995.2 kB, leaving ~90 kB of headroom.
+  ".js": 2_085_000,
 };
 
 const ASSETS = join("dist", "assets");
