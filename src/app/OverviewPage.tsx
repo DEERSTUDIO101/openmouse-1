@@ -4,6 +4,7 @@ import {
   Clock,
   Gauge,
   ImageUp,
+  Keyboard,
   Layers,
   Lightbulb,
   MousePointerClick,
@@ -40,17 +41,19 @@ import {
   ProcessingCard,
   RazerButtonCard,
   ButtonMappingCard,
+  KsnakeMacroCard,
   PowerModeCard,
   OnboardProfileCard,
   PulsarProCard,
   SignalCard,
   DongleLedCard,
   SleepCard,
+  KsnakeScrollCard,
   DpiLightingCard,
 } from "./cards/AdvancedCards";
 import { cardAvailability } from "./cards/availability";
 import { TeevolutionProfileCard } from "./cards/teevolution/ProfileCard";
-import { deviceImage, isUnknownDevice, showcaseDeviceImageUrls } from "../ui/device-images";
+import { deviceImage, deviceImageFilename, isUnknownDevice, showcaseDeviceImageUrls } from "../ui/device-images";
 import { BatteryIcon } from "./ui";
 import { availableWorkspaceTab, availableWorkspaceTabs } from "./workspace-tabs";
 
@@ -63,6 +66,7 @@ const TAB_ICON: Record<WorkspaceTab, LucideIcon> = {
   performance: BarChart3,
   lighting: Lightbulb,
   buttons: MousePointerClick,
+  macro: Keyboard,
   profiles: Layers,
   advanced: Settings2,
 };
@@ -72,21 +76,27 @@ export function TabIcon({ tab }: { tab: WorkspaceTab }): ReactNode {
   return <Icon size={13} strokeWidth={1.8} aria-hidden="true" />;
 }
 
-interface DiagramAnnotation {
-  key: string;
-  side: "left" | "right";
-  label: string;
-  value: string;
-  anchorX: number; // fraction of the artwork width
-  anchorY: number; // fraction of the artwork height
-  chipY: number;   // vertical fraction where the label chip sits
+interface ButtonMarkerPosition {
+  x: number;
+  y: number;
 }
 
-// Leader-line geometry, in artwork fractions. The chip text is inset this far
-// from the box edge and the line's horizontal tick stops just short of it, so
-// no line ever crosses the label text.
-const DIAGRAM_RAIL = { left: 0.09, right: 0.91 };   // vertical trunk column
-const DIAGRAM_TICK = { left: 0, right: 100 };       // tick end at canvas edge
+// The M2-NEX artwork is a fixed top-down render, so these coordinates keep
+// the remap numbers attached to the physical controls instead of making a
+// generic layout guess for every other mouse shape.
+const M2_NEX_BUTTON_MARKER_POSITIONS: Readonly<Record<string, ButtonMarkerPosition>> = {
+  left: { x: 0.23, y: 0.27 },
+  right: { x: 0.77, y: 0.27 },
+  middle: { x: 0.5, y: 0.19 },
+  forward: { x: 0.045, y: 0.39 },
+  backward: { x: 0.045, y: 0.51 },
+  "scroll up": { x: 0.62, y: 0.14 },
+  "scroll down": { x: 0.62, y: 0.29 },
+};
+
+function m2NexButtonMarkerPosition(button: string): ButtonMarkerPosition | null {
+  return M2_NEX_BUTTON_MARKER_POSITIONS[button.trim().toLowerCase()] ?? null;
+}
 
 // Device artwork requests go straight to the documented GitHub issue form
 // (public/devices/README.md, .github/ISSUE_TEMPLATE/device-artwork.yml).
@@ -111,81 +121,18 @@ function DeviceShowcase({ snapshot }: {
   );
   const artworkIssueHref = `${ARTWORK_ISSUE_URL}${status.name ? `&title=${encodeURIComponent(`Artwork request: ${status.name}`)}` : ""}`;
 
-  const annotations: DiagramAnnotation[] = ([
-    {
-      key: "connection",
-      side: "left",
-      label: "Connection",
-      value: status.connectionType ? connectionText(locale, status.connectionType) : "",
-      anchorX: 0.38,
-      anchorY: 0.3,
-      chipY: 0.2,
-    },
-    {
-      key: "dpi",
-      side: "left",
-      label: "DPI",
-      value: status.dpi > 0 ? status.dpi.toLocaleString() : "",
-      anchorX: 0.42,
-      anchorY: 0.52,
-      chipY: 0.5,
-    },
-    {
-      key: "battery",
-      side: "left",
-      label: "Battery",
-      value: status.batteryPercent != null ? `${status.batteryPercent}%` : "",
-      anchorX: 0.36,
-      anchorY: 0.72,
-      chipY: 0.8,
-    },
-    {
-      key: "polling",
-      side: "right",
-      label: "Polling rate",
-      value: status.pollingRateHz ? `${status.pollingRateHz.toLocaleString()} Hz` : "",
-      anchorX: 0.64,
-      anchorY: 0.36,
-      chipY: 0.35,
-    },
-    {
-      key: "profile",
-      side: "right",
-      label: "Profile",
-      value: status.activeProfile != null ? `Profile ${status.activeProfile}` : "",
-      anchorX: 0.66,
-      anchorY: 0.68,
-      chipY: 0.65,
-    },
-  ] as DiagramAnnotation[]).filter((annotation) => annotation.value !== "");
-
-  const leftAnnotations = annotations.filter((annotation) => annotation.side === "left");
-  const rightAnnotations = annotations.filter((annotation) => annotation.side === "right");
-
   return (
     <div className="device-showcase">
       <h1 className="device-showcase-name">{status.name}</h1>
       <p className="device-showcase-brand">{status.brand}</p>
       <div className="device-diagram">
-        <div className="device-diagram-rail device-diagram-rail--left">
-          {leftAnnotations.map((annotation, index) => (
-            <div
-              key={annotation.key}
-              className="device-diagram-chip device-diagram-chip--left"
-              style={{ top: `${annotation.chipY * 100}%`, animationDelay: `${0.3 + index * 0.06}s` }}
-            >
-              <span className="device-diagram-chip-label">{annotation.label}</span>
-              <span className="device-diagram-chip-value">{annotation.value}</span>
-            </div>
-          ))}
-        </div>
         <div
           className="device-diagram-canvas"
           style={{
             aspectRatio: artSize ? `${artSize.w} / ${artSize.h}` : "1 / 1",
             width: artSize ? `min(100%, ${Math.round((artSize.w / artSize.h) * 56)}vh)` : "min(100%, 480px)",
           }}
-        >
+          >
           <div className="device-diagram-art">
             {image ? (
               <img
@@ -205,46 +152,54 @@ function DeviceShowcase({ snapshot }: {
               />
             ) : null}
           </div>
-          {annotations.length > 0 ? (
-            <svg className="device-diagram-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-              {annotations.map((annotation) => {
-                const x = annotation.anchorX * 100;
-                const y = annotation.anchorY * 100;
-                const cy = annotation.chipY * 100;
-                const railX = annotation.side === "left" ? DIAGRAM_RAIL.left * 100 : DIAGRAM_RAIL.right * 100;
-                const tickX = annotation.side === "left" ? DIAGRAM_TICK.left : DIAGRAM_TICK.right;
-                return (
-                  <g key={annotation.key}>
-                    <polyline
-                      points={`${x},${y} ${railX},${y} ${railX},${cy} ${tickX},${cy}`}
-                      vectorEffect="non-scaling-stroke"
-                    />
-                  </g>
-                );
-              })}
-            </svg>
-          ) : null}
-          {annotations.map((annotation) => (
-            <span
-              key={`${annotation.key}-dot`}
-              className="device-diagram-dot"
-              style={{ left: `${annotation.anchorX * 100}%`, top: `${annotation.anchorY * 100}%` }}
-              aria-hidden="true"
-            />
-          ))}
         </div>
-        <div className="device-diagram-rail device-diagram-rail--right">
-          {rightAnnotations.map((annotation, index) => (
-            <div
-              key={annotation.key}
-              className="device-diagram-chip device-diagram-chip--right"
-              style={{ top: `${annotation.chipY * 100}%`, animationDelay: `${0.3 + index * 0.06}s` }}
-            >
-              <span className="device-diagram-chip-label">{annotation.label}</span>
-              <span className="device-diagram-chip-value">{annotation.value}</span>
-            </div>
-          ))}
-        </div>
+      </div>
+      <div className="device-showcase-status-pill" aria-label="Device status">
+        <span className="device-showcase-status-primary">
+          <span className="device-showcase-dot" aria-hidden="true" />
+          {t(locale, "side.connected")}
+        </span>
+        {status.connectionType ? (
+          <>
+            <span className="device-showcase-status-separator" aria-hidden="true">·</span>
+            <span className="device-showcase-status-muted">{connectionText(locale, status.connectionType)}</span>
+          </>
+        ) : null}
+        {status.dpi > 0 ? (
+          <>
+            <span className="device-showcase-status-separator" aria-hidden="true">·</span>
+            <span className="device-showcase-status-item">
+              <span className="device-showcase-status-label">DPI</span>
+              <span className="device-showcase-status-value">{status.dpi.toLocaleString()}</span>
+            </span>
+          </>
+        ) : null}
+        {status.batteryPercent !== null ? (
+          <>
+            <span className="device-showcase-status-separator" aria-hidden="true">·</span>
+            <span className="device-showcase-status-item">
+              <BatteryIcon percent={status.batteryPercent} state={status.batteryState} />
+              <span className="device-showcase-status-value">{status.batteryPercent}%</span>
+            </span>
+          </>
+        ) : null}
+        {status.pollingRateHz > 0 ? (
+          <>
+            <span className="device-showcase-status-separator" aria-hidden="true">·</span>
+            <span className="device-showcase-status-item">
+              <span className="device-showcase-status-value">{status.pollingRateHz.toLocaleString()} Hz</span>
+            </span>
+          </>
+        ) : null}
+        {status.activeProfile != null ? (
+          <>
+            <span className="device-showcase-status-separator" aria-hidden="true">·</span>
+            <span className="device-showcase-status-item">
+              <span className="device-showcase-status-label">Profile</span>
+              <span className="device-showcase-status-value">{status.activeProfile}</span>
+            </span>
+          </>
+        ) : null}
       </div>
       {needsArtwork ? (
         <a
@@ -261,16 +216,101 @@ function DeviceShowcase({ snapshot }: {
   );
 }
 
+function M2NexProfileOverview({ snapshot }: { snapshot: ControlSnapshot }): ReactNode {
+  const status = snapshot.status;
+  const locale = snapshot.preferences.locale;
+  if (status?.brand !== "Noir Gear" || status.name !== "M2-NEX" || snapshot.m2nexProfiles === null) return null;
+  const profile = snapshot.m2nexProfiles[snapshot.activeM2NexProfile];
+  if (!profile) return null;
+  const applyDisabled = snapshot.settingInProgress || snapshot.pending.count > 0;
+  return (
+    <section
+      id="m2nex-profile-overview"
+      className="m2nex-profile-overview"
+      aria-label={t(locale, "m2nex.controls")}
+    >
+      <div className="m2nex-profile-overview-title">
+        <span>{t(locale, "m2nex.overline")}</span>
+        <strong>{t(locale, "m2nex.label")}</strong>
+      </div>
+      <label className="m2nex-profile-overview-picker" htmlFor="m2nex-profile-overview-select">
+        <select
+          id="m2nex-profile-overview-select"
+          aria-label={t(locale, "m2nex.select")}
+          value={snapshot.activeM2NexProfile}
+          disabled={snapshot.settingInProgress || snapshot.pending.busy}
+          onChange={(event) => control.selectM2NexProfile(Number(event.currentTarget.value))}
+        >
+          {snapshot.m2nexProfiles.map((entry, index) => (
+            <option key={entry.id} value={index}>{entry.name}</option>
+          ))}
+        </select>
+      </label>
+      <span className={`m2nex-profile-overview-state${snapshot.m2nexProfileDirty ? " is-dirty" : ""}`}>
+        {snapshot.m2nexProfileDirty ? t(locale, "m2nex.pending") : t(locale, "m2nex.saved")}
+      </span>
+      <div className="m2nex-profile-overview-actions">
+        <button
+          className="m2nex-profile-overview-apply"
+          type="button"
+          disabled={applyDisabled}
+          onClick={() => void control.applyM2NexProfile()}
+        >
+          {t(locale, "m2nex.apply")}
+        </button>
+        <button
+          type="button"
+          disabled={snapshot.settingInProgress}
+          onClick={control.saveCurrentM2NexProfile}
+        >
+          {t(locale, "m2nex.save")}
+        </button>
+      </div>
+    </section>
+  );
+}
+
 export function DeviceShowcaseSidebar({ snapshot }: { snapshot: ControlSnapshot }): ReactNode {
   const status = snapshot.status;
   if (!status) return null;
   const locale = snapshot.preferences.locale;
   const image = snapshot.deviceArtwork;
+  const showButtonMarkers = snapshot.workspaceTab === "buttons"
+    && status.brand === "Noir Gear"
+    && status.name === "M2-NEX"
+    && status.buttonMappings != null;
 
   return (
     <div className="showcase-sidebar">
       <div className="showcase-sidebar-visual">
-        {image ? (
+        {image ? showButtonMarkers ? (
+          <div className="button-map-showcase-art">
+            <img
+              className="showcase-sidebar-image button-map-showcase-image"
+              src={image}
+              alt={status.name}
+              onError={(event) => {
+                event.currentTarget.onerror = null;
+                event.currentTarget.src = deviceImage(null);
+              }}
+            />
+            <div className="button-map-markers" aria-hidden="true">
+              {Object.keys(status.buttonMappings ?? {}).map((button, index) => {
+                const position = m2NexButtonMarkerPosition(button);
+                if (!position) return null;
+                return (
+                  <span
+                    key={button}
+                    className="button-map-marker"
+                    style={{ left: `${position.x * 100}%`, top: `${position.y * 100}%` }}
+                  >
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
           <img
             className="showcase-sidebar-image"
             src={image}
@@ -392,6 +432,7 @@ function OverviewContent({ snapshot }: {
   const powerOverview = status.ui?.powerOverview === true;
   return (
     <>
+      <M2NexProfileOverview snapshot={snapshot} />
       <DeviceShowcase snapshot={snapshot} />
       {powerOverview && (has.teevolutionDpiLighting || has.sleep) ? (
         <section id="power-overview-settings" className="settings-grid device-data" aria-label="Power settings">
@@ -454,6 +495,12 @@ export function Workspace({
     show(has.atkButtons, ["buttons"]) ? <AtkButtonCard key="atk-buttons" snapshot={snapshot} /> : null,
     show(has.buttonMapping && !snapshot.traits.teevolution, ["buttons"])
       ? <ButtonMappingCard key="button-mapping" snapshot={snapshot} /> : null,
+    show(has.ksnakeScroll, ["buttons"])
+      ? <KsnakeScrollCard key="ksnake-scroll" snapshot={snapshot} /> : null,
+  ].filter((node) => node !== null);
+
+  const macro = [
+    show(has.ksnakeMacros, ["macro"]) ? <KsnakeMacroCard key="ksnake-macros" snapshot={snapshot} /> : null,
   ].filter((node) => node !== null);
 
   const advanced = [
@@ -491,7 +538,7 @@ export function Workspace({
   const showDiagnostics = device && on(tab, ["advanced"]);
   const showOverview = on(tab, ["overview"]);
 
-  const anyPanel = performance.length > 0 || advanced.length > 0 || lighting.length > 0
+  const anyPanel = performance.length > 0 || macro.length > 0 || advanced.length > 0 || lighting.length > 0
     || showProfiles || showTeevolutionProfiles || showNapeLayers || showSuperstrike
     || showLogitechDetails || showMxMaster || showDiagnostics || showOverview;
 
@@ -539,6 +586,19 @@ export function Workspace({
           <div className="performance-controls">
             {performance}
           </div>
+        </section>
+      ) : null}
+
+      {macro.length > 0 ? (
+        <section
+          id="macro-settings"
+          className="settings-grid device-data"
+          data-workspace-host
+          role="tabpanel"
+          aria-labelledby="workspace-tab-macro"
+          aria-label="Macro settings"
+        >
+          {macro}
         </section>
       ) : null}
 
@@ -613,6 +673,10 @@ function DeviceListView({ snapshot }: { snapshot: ControlSnapshot }): ReactNode 
               const liveStatus = connected ? snapshot.deviceStatus : null;
               const pollText = liveStatus?.pollingRateHz ? `${liveStatus.pollingRateHz} Hz` : "–";
               const batteryText = liveStatus?.batteryPercent != null ? `${liveStatus.batteryPercent}%` : "–%";
+              const imageSrc = deviceImage({ vendorId: device.vendorId, productId: device.productId } as HIDDevice, device.name);
+              const imageClass = deviceImageFilename(device.name) === "noir-m2-nex.png"
+                ? " device-tile-image-is-portrait"
+                : "";
               return (
                 <li
                 className={`device-tile${connected ? " is-connected" : ""}${device.kind === "keyboard" ? " is-keyboard" : ""}`}
@@ -652,8 +716,8 @@ function DeviceListView({ snapshot }: { snapshot: ControlSnapshot }): ReactNode 
                   </div>
                   <div className="device-tile-visual">
                     <img
-                      className="device-tile-image"
-                      src={deviceImage({ vendorId: device.vendorId, productId: device.productId } as HIDDevice, device.name)}
+                      className={`device-tile-image${imageClass}`}
+                      src={imageSrc}
                       alt={device.name}
                       loading="lazy"
                       draggable={false}
@@ -702,7 +766,9 @@ export function OverviewPage({
   const { preferences } = snapshot;
   const locale = preferences.locale;
 
-  const tabs = availableWorkspaceTabs(status !== null, cardAvailability(snapshot));
+  const tabs = availableWorkspaceTabs(status !== null, cardAvailability(snapshot), {
+    hideLighting: status?.brand === "Noir Gear" && status.name === "M2-NEX",
+  });
   const workspaceTab = availableWorkspaceTab(snapshot.workspaceTab, tabs);
   const workspaceSnapshot = workspaceTab === snapshot.workspaceTab
     ? snapshot

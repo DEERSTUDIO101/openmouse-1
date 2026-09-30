@@ -245,6 +245,16 @@ test("K-snake X11 resolves by name regardless of transport", () => {
   assert.equal(deviceImage(null, "K-snake X11"), CDN + "ksnake-x11.png");
 });
 
+test("Noir Gear M2-NEX resolves to its maintainer-hosted artwork", () => {
+  assert.equal(deviceImage(null, "M2-NEX"), CDN + "noir-m2-nex.png");
+  assert.equal(deviceImage(null, "Noir Gear M2-NEX"), CDN + "noir-m2-nex.png");
+});
+
+test("Attack Shark X11 does not inherit K-snake artwork", () => {
+  assert.equal(deviceImage(null, "Attack Shark X11"), CDN + "unknown-device.png");
+  assert.equal(deviceImage(null, "Attack Shark X11 SE"), CDN + "unknown-device.png");
+});
+
 test("Attack Shark X3 / X3 Pro resolve by name", () => {
   assert.equal(deviceImage(null, "Attack Shark X3"), CDN + "attackshark-x3.png");
   assert.equal(deviceImage(null, "Attack Shark X3 Pro"), CDN + "attackshark-x3.png");

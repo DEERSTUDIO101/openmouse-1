@@ -28,5 +28,26 @@ test("an unavailable selected tab falls back to overview", () => {
 });
 
 test("the disconnected state keeps every navigation tab", () => {
-  assert.equal(availableWorkspaceTabs(false, availability({})).length, 6);
+  assert.deepEqual(availableWorkspaceTabs(false, availability({})), [
+    "overview", "performance", "buttons", "macro", "lighting", "profiles", "advanced",
+  ]);
+});
+
+test("the macro tab follows the onboard macro capability", () => {
+  const tabs = availableWorkspaceTabs(true, availability({ ksnakeMacros: true }));
+  assert.deepEqual(tabs, ["overview", "performance", "macro", "advanced"]);
+});
+
+test("M2-NEX can hide the lighting tab without changing other capabilities", () => {
+  const tabs = availableWorkspaceTabs(true, availability({
+    lighting: true,
+    buttonMapping: true,
+    ksnakeMacros: true,
+  }), { hideLighting: true });
+  assert.deepEqual(tabs, ["overview", "performance", "buttons", "macro", "advanced"]);
+});
+
+test("a K-snake scroll control is placed behind the Buttons tab", () => {
+  const tabs = availableWorkspaceTabs(true, availability({ ksnakeScroll: true }));
+  assert.deepEqual(tabs, ["overview", "performance", "buttons", "advanced"]);
 });

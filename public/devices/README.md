@@ -160,6 +160,12 @@ trusted.
 4. Keep this note as provenance. Vendor product art — treat as a request
    pending licensing review.
 
+`noir-m2-nex.png` is reserved for the name-fallback mapping for Noir Gear's
+M2-NEX. A local render from the vendor configurator may be used for development
+previews, but it is deliberately not committed here. Before publishing the
+asset, Noir Gear must confirm redistribution rights or OpenMouse should use a
+maintainer-created silhouette instead.
+
 `delux-m800-mini.png` — the name-fallback mapping in `src/ui/device-images.ts`
 is in place (keyed on reported names like "Delux M800 Mini", "Delux M800 Pro",
 "Delux M800 Mini (Wireless)"). The render was supplied from Delux's official
