@@ -1,18 +1,21 @@
 import type { MouseStatus } from "@openmouse/protocol/drivers/mouse-types";
+import type { KsnakeMacroProfile } from "@openmouse/protocol/ksnake";
 import type { KeychronNapeLayerKeymap } from "@openmouse/protocol/keychron";
 import type { LogitechReprogrammableControl } from "@openmouse/protocol/logitech";
 import type { DpiStageCapabilities, DpiStagePlan, OnboardProfile } from "@openmouse/protocol/drivers/logitech/onboard-profiles";
 import type { InterfacePreferences } from "../interface-preferences";
 import type { PreviewMode } from "../preview-modes";
 import type { DriverTraits } from "./traits";
+import type { M2NexProfile } from "./m2nex-profiles";
 
-export type WorkspaceTab = "overview" | "performance" | "lighting" | "buttons" | "profiles" | "advanced";
+export type WorkspaceTab = "overview" | "performance" | "buttons" | "macro" | "lighting" | "profiles" | "advanced";
 
 export const WORKSPACE_TAB_ORDER: readonly WorkspaceTab[] = [
   "overview",
   "performance",
-  "lighting",
   "buttons",
+  "macro",
+  "lighting",
   "profiles",
   "advanced",
 ];
@@ -200,6 +203,15 @@ export interface ControlSnapshot {
   stagedProfileName: string | null;
   /** Control id → staged remap target, for controls with an unflashed remap. */
   stagedButtonMappings: Record<number, number>;
+  /** M2-NEX/K-snake onboard macro slots, prepared locally for a full-table write. */
+  ksnakeMacros: KsnakeMacroProfile[] | null;
+  ksnakeMacrosLoading: boolean;
+  ksnakeMacrosError: string | null;
+  /** Local profile slots matching the M2-NEX vendor configurator. */
+  m2nexProfiles: M2NexProfile[] | null;
+  activeM2NexProfile: number;
+  /** True when the selected local profile differs from the device. */
+  m2nexProfileDirty: boolean;
   stagedProfileButtonAssignments: StagedProfileButtonAssignment[];
   /** Nape Pro VIA keymap for the layer currently open in the Buttons tab. */
   napeKeymap: KeychronNapeLayerKeymap | null;

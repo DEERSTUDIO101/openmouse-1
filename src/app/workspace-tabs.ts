@@ -4,15 +4,18 @@ import type { CardAvailability } from "./cards/availability.ts";
 export function availableWorkspaceTabs(
   connected: boolean,
   has: CardAvailability,
+  options: { hideLighting?: boolean } = {},
 ): readonly WorkspaceTab[] {
   if (!connected) return WORKSPACE_TAB_ORDER;
   const hasButtons = has.eggButtons || has.razerButtons || has.mxMasterButtons || has.atkButtons
-    || has.buttonMapping || has.debounce || has.lightforce || has.eggSpdt || has.superstrike;
+    || has.buttonMapping || has.debounce || has.lightforce || has.eggSpdt || has.superstrike
+    || has.ksnakeScroll;
   const hasProfiles = has.profiles || has.keychronNapeLayers || has.atkProfile
     || has.onboardProfiles || has.pulsarPro;
   return WORKSPACE_TAB_ORDER.filter((tab) => {
-    if (tab === "lighting") return has.lighting || has.teevolutionDpiLighting;
+    if (tab === "lighting") return !options.hideLighting && (has.lighting || has.teevolutionDpiLighting);
     if (tab === "buttons") return hasButtons;
+    if (tab === "macro") return has.ksnakeMacros;
     if (tab === "profiles") return hasProfiles;
     return true;
   });
