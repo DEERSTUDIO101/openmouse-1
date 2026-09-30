@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { Check } from "lucide-react";
 import {
   capabilitiesForFormat,
   stageLodLevel,
@@ -210,6 +211,11 @@ function DpiStageEditor({
   const setSlider = (index: number, numeric: number): void => setValue(index, String(numeric));
 
   const setActive = (index: number): void => {
+    // In the single-DPI view the row number picks that preset, like its tickbox.
+    if (mode === "generic") {
+      if (!rows[index].enabled) setEnabled(index, true);
+      return;
+    }
     if (!rows[index].enabled) return;
     if (mode === "logitech") {
       control.setDpiSlotDefault(compactIndex(index));
@@ -285,18 +291,21 @@ function DpiStageEditor({
               key={index}
               className={`dpi-editor-row${row.enabled ? "" : " is-off"}${highlighted ? " is-active" : ""}${stageColorClass}`}
             >
-              <input
-                type="checkbox"
-                className="dpi-editor-tick"
-                aria-label={tp(locale, "dpi.stageToggle", { n: index + 1 })}
-                checked={row.enabled}
-                disabled={locked || fixedStageCount || !stagesWritable}
-                onChange={() => setEnabled(index, !row.enabled)}
-              />
+              <label className="dpi-editor-check">
+                <input
+                  type="checkbox"
+                  className="dpi-editor-tick"
+                  aria-label={tp(locale, "dpi.stageToggle", { n: index + 1 })}
+                  checked={row.enabled}
+                  disabled={locked || fixedStageCount || (mode === "stage" && !stagesWritable)}
+                  onChange={() => setEnabled(index, !row.enabled)}
+                />
+                <span className="dpi-editor-box" aria-hidden="true"><Check size={12} strokeWidth={3.2} /></span>
+              </label>
               <button
                 type="button"
                 className="dpi-editor-index"
-                disabled={locked || !row.enabled || (mode === "stage" && !activeWritable)}
+                disabled={locked || (mode !== "generic" && !row.enabled) || (mode === "stage" && !activeWritable)}
                 title={rowTitle}
                 aria-pressed={highlighted}
                 onClick={() => setActive(index)}
@@ -324,6 +333,7 @@ function DpiStageEditor({
                 step={slider.step}
                 value={slider.pos}
                 disabled={locked || (mode === "stage" && !stagesWritable)}
+                style={{ "--fill": `${((slider.pos - slider.min) / Math.max(1, slider.max - slider.min)) * 100}%` } as CSSProperties}
                 onChange={(event) => sliderCommit(index, Number(event.currentTarget.value))}
               />
             </div>

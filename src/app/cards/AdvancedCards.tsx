@@ -27,7 +27,7 @@ import { selectableValues, sleepLabel, sleepParts, sleepTotalSeconds, valuesWith
 import type { ControlSnapshot } from "../../device/types";
 import { t, tp } from "../../i18n";
 import type { InterfaceLocale } from "../../interface-preferences";
-import { Collapsible, Segmented, SwitchRow } from "../ui";
+import { Collapsible, OptionMenu, Segmented, StepperSlider, SwitchButton, SwitchRow } from "../ui";
 
 function signalWord(locale: InterfaceLocale, strength: number): string {
   const keys = ["adv.signal0", "adv.signal1", "adv.signal2", "adv.signal3", "adv.signal4"] as const;
@@ -136,6 +136,26 @@ export function SignalCard({ snapshot }: { snapshot: ControlSnapshot }): ReactNo
   );
 }
 
+export function DongleLedCard({ snapshot }: { snapshot: ControlSnapshot }): ReactNode {
+  const status = snapshot.status;
+  if (!status) return null;
+  const locale = snapshot.preferences.locale;
+  const staged = snapshot.pending.keys.includes("dongle-led");
+  return (
+    <article id="dongle-led-settings" className={`setting-card${staged ? " is-staged" : ""}`} data-pending-key="dongle-led">
+      <div className="setting-heading compact">
+        <div><p>WIRELESS</p><h2>{t(locale, "adv.dongleLed")}</h2></div>
+        <SwitchButton
+          id="dongle-led-toggle"
+          label={t(locale, "adv.dongleLed")}
+          value={status.dongleLedEnabled}
+          onChange={() => control.toggleDongleLed()}
+        />
+      </div>
+    </article>
+  );
+}
+
 export function DebounceCard({ snapshot }: { snapshot: ControlSnapshot }): ReactNode {
   const status = snapshot.status;
   if (!status) return null;
@@ -149,37 +169,28 @@ export function DebounceCard({ snapshot }: { snapshot: ControlSnapshot }): React
     return (
       <article id="debounce-settings" className={`setting-card${staged ? " is-staged" : ""}`}>
         <div className="setting-heading compact"><div><p>CLICK</p><h2>{t(locale, "adv.debounce")}</h2></div></div>
-        <div className="angle-tuning-control" data-pending-key="debounce">
-          <SwitchRow
-            id="atk-debounce-toggle"
-            label="Key debounce"
-            value={ms > 0}
-            disabled={snapshot.settingInProgress}
-            onChange={(next) => control.applyPulsarValue("debounce", next ? 1 : 0)}
-          />
-          <div className="angle-tuning-head">
-            <span>Debounce delay</span>
-            <output id="atk-debounce-value" htmlFor="atk-debounce-slider">{ms} ms</output>
-          </div>
-          <div className="angle-tuning-inputs">
-            <button type="button" aria-label="Debounce delay: decrease" disabled={ms <= 0} onClick={() => control.applyPulsarValue("debounce", Math.max(0, ms - 1))}>−</button>
-            <input
-              id="atk-debounce-slider"
-              type="range"
-              min={0}
-              max={20}
-              step={1}
-              value={ms}
+        <StepperSlider
+          id="atk-debounce-slider"
+          label={t(locale, "adv.debounceDelay")}
+          toggle={
+            <SwitchRow
+              id="atk-debounce-toggle"
+              label={t(locale, "adv.keyDebounce")}
+              value={ms > 0}
               disabled={snapshot.settingInProgress}
-              aria-label="Debounce delay"
-              aria-valuetext={`${ms} milliseconds`}
-              style={{ "--fill": `${(ms / 20) * 100}%` }}
-              onChange={(event) => control.applyPulsarValue("debounce", Number(event.currentTarget.value))}
+              onChange={(next) => control.applyPulsarValue("debounce", next ? 1 : 0)}
             />
-            <button type="button" aria-label="Debounce delay: increase" disabled={ms >= 20} onClick={() => control.applyPulsarValue("debounce", Math.min(20, ms + 1))}>+</button>
-          </div>
-          <div className="angle-tuning-scale" aria-hidden="true"><span>0 ms</span><i>10 ms</i><span>20 ms</span></div>
-        </div>
+          }
+          value={ms}
+          min={0}
+          max={20}
+          step={1}
+          scale={["0 ms", "10 ms", "20 ms"]}
+          formatValue={(shown) => `${shown} ms`}
+          disabled={snapshot.settingInProgress}
+          pendingKey="debounce"
+          onCommit={(next) => control.applyPulsarValue("debounce", next)}
+        />
       </article>
     );
   }
@@ -194,16 +205,18 @@ export function DebounceCard({ snapshot }: { snapshot: ControlSnapshot }): React
   return (
     <article id="debounce-settings" className={`setting-card${staged ? " is-staged" : ""}`}>
       <div className="setting-heading compact"><div><p>CLICK</p><h2>{t(locale, "adv.debounce")}</h2></div></div>
-      <select
+      <OptionMenu
         id="debounce-select"
-        value={status.debounceMs ?? ""}
+        ariaLabel={t(locale, "adv.debounce")}
+        options={options.map((ms) => ({
+          value: ms,
+          label: `${ms} ms`,
+          disabled: offered != null && !offered.includes(ms),
+        }))}
+        value={status.debounceMs}
         disabled={status.debounceMs === null || status.debounceMs === undefined}
-        onChange={(event) => control.applyPulsarValue("debounce", Number(event.currentTarget.value))}
-      >
-        {options.map((ms) => (
-          <option key={ms} value={ms} disabled={offered != null && !offered.includes(ms)}>{ms} ms</option>
-        ))}
-      </select>
+        onChange={(next) => control.applyPulsarValue("debounce", next)}
+      />
     </article>
   );
 }
@@ -247,16 +260,12 @@ export function SleepCard({ snapshot }: { snapshot: ControlSnapshot }): ReactNod
       <div className="setting-heading compact">
         <div><p>POWER</p><h2>{t(locale, "adv.autoSleep")}</h2></div>
         {canDisable ? (
-          <button
+          <SwitchButton
             id="sleep-toggle"
-            className={`switch-button${asleep ? " is-on" : ""}`}
-            type="button"
-            role="switch"
-            aria-checked={asleep}
-            onClick={() => control.toggleSleep(!asleep)}
-          >
-            {asleep ? t(locale, "common.on") : t(locale, "common.off")}
-          </button>
+            label={t(locale, "adv.autoSleep")}
+            value={asleep}
+            onChange={(next) => control.toggleSleep(next)}
+          />
         ) : null}
       </div>
       {keychronSleep && asleep ? (
@@ -266,14 +275,14 @@ export function SleepCard({ snapshot }: { snapshot: ControlSnapshot }): ReactNod
           locale={locale}
         />
       ) : (
-        <select
+        <OptionMenu
           id="sleep-select"
-          value={status.sleepTimeout ?? ""}
+          ariaLabel={t(locale, "adv.sleepTimeout")}
+          options={options.map(([value, label]) => ({ value, label }))}
+          value={status.sleepTimeout}
           disabled={!asleep}
-          onChange={(event) => control.applyPulsarValue("sleep", Number(event.currentTarget.value))}
-        >
-          {options.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-        </select>
+          onChange={(next) => control.applyPulsarValue("sleep", next)}
+        />
       )}
     </article>
   );
@@ -330,14 +339,14 @@ export function LowPowerCard({ snapshot }: { snapshot: ControlSnapshot }): React
   return (
     <article id="low-power-settings" className={`setting-card${staged ? " is-staged" : ""}`}>
       <div className="setting-heading compact"><div><p>POWER</p><h2>{t(locale, "adv.lowPower")}</h2></div></div>
-      <select
+      <OptionMenu
         id="low-power-select"
-        value={status.lowBatteryWarning ?? ""}
+        ariaLabel={t(locale, "adv.lowPower")}
+        options={percentages.map((value) => ({ value, label: `${value}%` }))}
+        value={status.lowBatteryWarning}
         disabled={tooFast}
-        onChange={(event) => control.applyLowPowerThreshold(Number(event.currentTarget.value))}
-      >
-        {percentages.map((value) => <option key={value} value={value}>{value}%</option>)}
-      </select>
+        onChange={(next) => control.applyLowPowerThreshold(next)}
+      />
       <small id="low-power-note" className="setting-note">
         {tooFast
           ? tp(locale, "adv.lowPowerCeiling", { max: ceiling.toLocaleString() })
@@ -381,18 +390,18 @@ export function ProcessingCard({ snapshot }: { snapshot: ControlSnapshot }): Rea
       {sensorUi && teevolutionProfile ? (
         <div id="teevolution-sensor-mode-row" className="field-label spaced">
           <span>{t(locale, "adv.sensorMode")}</span>
-          <select
+          <OptionMenu
             id="teevolution-sensor-mode"
+            ariaLabel={t(locale, "adv.sensorMode")}
+            options={(["Eco", "High", "Ultra"] as const)
+              .filter((mode) => mode === "Ultra" || teevolutionProfile.sensorModes.includes(mode))
+              .map((mode) => ({ value: mode, label: mode }))}
             value={sensorUi.mode}
             disabled={!sensorUi.editable}
-            onChange={(event) => control.applyTeevolutionSensorMode(
-              event.currentTarget.value as NonNullable<typeof status.sensorMode>,
+            onChange={(next) => control.applyTeevolutionSensorMode(
+              next as NonNullable<typeof status.sensorMode>,
             )}
-          >
-            {(["Eco", "High", "Ultra"] as const)
-              .filter((mode) => mode === "Ultra" || teevolutionProfile.sensorModes.includes(mode))
-              .map((mode) => <option key={mode} value={mode}>{mode}</option>)}
-          </select>
+          />
           <small id="teevolution-sensor-mode-note" className="setting-note">
             {sensorUi.editable
               ? t(locale, "adv.ecoNote")
@@ -403,19 +412,17 @@ export function ProcessingCard({ snapshot }: { snapshot: ControlSnapshot }): Rea
 
       {status.sensorMode != null && !traits.teevolution ? (
         <div id="sensor-mode-row" className="field-label spaced">
-          <span>Sensor sampling mode</span>
-          <select
+          <span>{t(locale, "adv.sensorSampling")}</span>
+          <OptionMenu
             id="sensor-mode"
+            ariaLabel={t(locale, "adv.sensorSampling")}
+            options={(["Eco", "High", "Ultra"] as const).map((mode) => ({ value: mode, label: mode }))}
             value={status.sensorMode}
             disabled={status.sensorModeEditable === false}
-            onChange={(event) => control.applySensorMode(
-              event.currentTarget.value as NonNullable<typeof status.sensorMode>,
+            onChange={(next) => control.applySensorMode(
+              next as NonNullable<typeof status.sensorMode>,
             )}
-          >
-            {(["Eco", "High", "Ultra"] as const).map((mode) => (
-              <option key={mode} value={mode}>{mode}</option>
-            ))}
-          </select>
+          />
         </div>
       ) : null}
 
@@ -444,6 +451,7 @@ export function ProcessingCard({ snapshot }: { snapshot: ControlSnapshot }): Rea
         <AtkAntiMistouchControl
           milliseconds={status.atkAntiMistouchMs}
           busy={snapshot.settingInProgress}
+          locale={locale}
         />
       ) : null}
       <SwitchRow
@@ -485,61 +493,57 @@ export function ProcessingCard({ snapshot }: { snapshot: ControlSnapshot }): Rea
       />
       {angleTuning != null ? (
         status.atkSensorMode != null ? (
-          <div className="angle-tuning-control" data-pending-key="atk-rotation">
-            <SwitchRow
-              id="atk-rotation-toggle"
-              label="Sensor rotation"
-              value={false}
+          <>
+            <StepperSlider
+              id="atk-rotation-slider"
+              label={t(locale, "adv.sensorRotation")}
+              badge={t(locale, "adv.locked")}
+              value={0}
+              min={-30}
+              max={30}
+              step={15}
+              scale={["−30°", "0°", "+30°"]}
+              formatValue={() => "0°"}
               disabled
-              onChange={() => undefined}
+              pendingKey="atk-rotation"
+              onCommit={() => undefined}
             />
-            <div className="angle-tuning-head">
-              <span>Sensor rotation</span>
-              <output id="atk-rotation-value" htmlFor="atk-rotation-slider">0°</output>
-            </div>
-            <div className="angle-tuning-inputs">
-              <button type="button" aria-label="Sensor rotation: decrease" disabled>−</button>
-              <input
-                id="atk-rotation-slider"
-                type="range"
-                min={-30}
-                max={30}
-                step={15}
-                value={0}
-                disabled
-                aria-label="Sensor rotation"
-                aria-valuetext="0 degrees"
-                style={{ "--fill": "50%" }}
-              />
-              <button type="button" aria-label="Sensor rotation: increase" disabled>+</button>
-            </div>
-            <div className="angle-tuning-scale" aria-hidden="true"><span>−30°</span><i>0°</i><span>30°</span></div>
             <small className="setting-note">Precise horizontal movement regardless of mouse grip style. Rotation writes touch calibration and stay locked pending a USB capture — calibrate in ATK HUB for now.</small>
-          </div>
+          </>
         ) : capabilities?.angleTuningWritable
           ? <AngleTuningControl value={angleTuning} label={t(locale, "adv.angleTune")} />
           : (
-            <div className="angle-tuning-readonly field-label spaced">
-              <span>{t(locale, "adv.angleTune")}</span>
-              <output id="angle-tune-value">{angleTuning}°</output>
-            </div>
+            <StepperSlider
+              id="angle-tune-slider"
+              label={t(locale, "adv.angleTune")}
+              value={angleTuning}
+              min={-30}
+              max={30}
+              step={1}
+              scale={["−30°", "0°", "+30°"]}
+              formatValue={(shown) => `${shown > 0 ? "+" : ""}${shown}°`}
+              disabled
+              pendingKey="angle-tuning"
+              onCommit={() => undefined}
+            />
           )
       ) : null}
 
       {traits.teevolution && teevolutionProfile ? (
-        <label id="teevolution-performance-duration-row" className="field-label spaced">
-          {t(locale, "adv.duration")}
-          <select
+        <div id="teevolution-performance-duration-row" className="field-label spaced">
+          <span>{t(locale, "adv.duration")}</span>
+          <OptionMenu
             id="teevolution-performance-duration"
-            value={status.performanceDuration ?? ""}
+            ariaLabel={t(locale, "adv.duration")}
+            options={teevolutionProfile.performanceTimeOptions.map((value) => ({
+              value,
+              label: sleepLabel(value * 10, locale),
+            }))}
+            value={status.performanceDuration ?? null}
             disabled={status.performanceMode !== true}
-            onChange={(event) => control.applyTeevolutionPerformanceDuration(Number(event.currentTarget.value))}
-          >
-            {teevolutionProfile.performanceTimeOptions.map((value) => (
-              <option key={value} value={value}>{sleepLabel(value * 10, locale)}</option>
-            ))}
-          </select>
-        </label>
+            onChange={(next) => control.applyTeevolutionPerformanceDuration(next)}
+          />
+        </div>
       ) : null}
     </article>
   );
@@ -550,88 +554,49 @@ export function ProcessingCard({ snapshot }: { snapshot: ControlSnapshot }): Rea
  * slider on the line below, mirroring the vendor HUB layout. Verified
  * 100/500 ms on hardware; the driver accepts 10 ms steps.
  */
-function AtkAntiMistouchControl({ milliseconds, busy }: { milliseconds: number; busy: boolean }): ReactNode {
-  const [dragging, setDragging] = useState<number | null>(null);
-  const shown = dragging ?? Math.max(100, milliseconds);
-  const apply = (next: number): void => {
-    void control.applyAtkAntiMistouch(Math.max(100, Math.min(1000, next)));
-  };
+function AtkAntiMistouchControl({ milliseconds, busy, locale }: { milliseconds: number; busy: boolean; locale: InterfaceLocale }): ReactNode {
   return (
-    <div className="angle-tuning-control" data-pending-key="atk-anti-mistouch">
-      <SwitchRow
-        id="atk-anti-mistouch-toggle"
-        label="Scroll Wheel Anti-Mistouch Mode"
-        value={milliseconds > 0}
-        disabled={busy}
-        onChange={(next) => void control.applyAtkAntiMistouch(next ? 100 : 0)}
-      />
-      <div className="angle-tuning-head">
-        <span>Anti-mistouch window</span>
-        <output id="atk-anti-mistouch-value" htmlFor="atk-anti-mistouch-slider">{milliseconds} ms</output>
-      </div>
-      <div className="angle-tuning-inputs">
-        <button type="button" aria-label="Anti-mistouch window: decrease" disabled={milliseconds <= 0 || shown <= 100} onClick={() => apply(shown - 50)}>−</button>
-        <input
-          id="atk-anti-mistouch-slider"
-          type="range"
-          min={100}
-          max={1000}
-          step={50}
-          value={shown}
-          disabled={milliseconds <= 0 || busy}
-          aria-label="Anti-mistouch window"
-          aria-valuetext={`${shown} milliseconds`}
-          style={{ "--fill": `${((shown - 100) / 900) * 100}%` }}
-          onInput={(event) => setDragging(Number(event.currentTarget.value))}
-          onChange={(event) => {
-            const next = Number(event.currentTarget.value);
-            setDragging(null);
-            apply(next);
-          }}
-          onBlur={() => setDragging(null)}
+    <StepperSlider
+      id="atk-anti-mistouch-slider"
+      label={t(locale, "adv.antiMistouchWindow")}
+      toggle={
+        <SwitchRow
+          id="atk-anti-mistouch-toggle"
+          label={t(locale, "adv.antiMistouchMode")}
+          value={milliseconds > 0}
+          disabled={busy}
+          onChange={(next) => void control.applyAtkAntiMistouch(next ? 100 : 0)}
         />
-        <button type="button" aria-label="Anti-mistouch window: increase" disabled={milliseconds <= 0 || shown >= 1000} onClick={() => apply(shown + 50)}>+</button>
-      </div>
-      <div className="angle-tuning-scale" aria-hidden="true"><span>100 ms</span><i>500 ms</i><span>1000 ms</span></div>
-      <div className="setting-separator" aria-hidden="true" />
-    </div>
+      }
+      value={Math.max(100, milliseconds)}
+      min={100}
+      max={1000}
+      step={50}
+      scale={["100 ms", "500 ms", "1000 ms"]}
+      formatValue={(shown) => `${shown} ms`}
+      disabled={milliseconds <= 0 || busy}
+      pendingKey="atk-anti-mistouch"
+      onCommit={(next) => void control.applyAtkAntiMistouch(next)}
+    />
   );
 }
 
-function AngleTuningControl({ value, label }: { value: number; label: string }): ReactNode {  const [dragging, setDragging] = useState<number | null>(null);
-  const shown = dragging ?? value;
+function AngleTuningControl({ value, label }: { value: number; label: string }): ReactNode {
   const apply = (next: number): void => control.applyAngleTuning(Math.max(-30, Math.min(30, next)));
 
   return (
-    <div className="angle-tuning-control" data-pending-key="angle-tuning">
-      <div className="angle-tuning-head">
-        <span>{label}</span>
-        <output id="angle-tune-value" htmlFor="angle-tune-slider">{shown > 0 ? "+" : ""}{shown}°</output>
-      </div>
-      <div className="angle-tuning-inputs">
-        <button type="button" aria-label={`${label}: decrease`} disabled={shown <= -30} onClick={() => apply(shown - 1)}>−</button>
-        <input
-          id="angle-tune-slider"
-          type="range"
-          min={-30}
-          max={30}
-          step={1}
-          value={shown}
-          aria-label={label}
-          aria-valuetext={`${shown} degrees`}
-          style={{ "--fill": `${((shown + 30) / 60) * 100}%` }}
-          onInput={(event) => setDragging(Number(event.currentTarget.value))}
-          onChange={(event) => {
-            const next = Number(event.currentTarget.value);
-            setDragging(null);
-            apply(next);
-          }}
-          onBlur={() => setDragging(null)}
-        />
-        <button type="button" aria-label={`${label}: increase`} disabled={shown >= 30} onClick={() => apply(shown + 1)}>+</button>
-      </div>
-      <div className="angle-tuning-scale" aria-hidden="true"><span>−30°</span><i>0°</i><span>+30°</span></div>
-    </div>
+    <StepperSlider
+      id="angle-tune-slider"
+      label={label}
+      value={value}
+      min={-30}
+      max={30}
+      step={1}
+      scale={["−30°", "0°", "+30°"]}
+      formatValue={(shown) => `${shown > 0 ? "+" : ""}${shown}°`}
+      pendingKey="angle-tuning"
+      onCommit={apply}
+    />
   );
 }
 
@@ -656,18 +621,18 @@ export function DpiLightingCard({ snapshot }: { snapshot: ControlSnapshot }): Re
       data-pending-key="teevolution-dpi-light-mode teevolution-dpi-light-brightness teevolution-dpi-light-speed dpi-light-sleep"
     >
       <div className="setting-heading compact"><div><p>{powerOverview ? "POWER" : "LIGHTING"}</p><h2>{t(locale, "adv.dpiIndicator")}</h2></div></div>
-      <label className="field-label">
-        {t(locale, "adv.effect")}
-        <select
+      <div className="field-label">
+        <span>{t(locale, "adv.effect")}</span>
+        <OptionMenu
           id="teevolution-dpi-light-mode"
-          value={lightMode}
-          onChange={(event) => control.applyTeevolutionDpiLighting("mode", Number(event.currentTarget.value))}
-        >
-          {([[0, "adv.ledOff"], [1, "adv.ledSteady"], [2, "adv.ledBreathing"]] as const)
+          ariaLabel={t(locale, "adv.effect")}
+          options={([[0, "adv.ledOff"], [1, "adv.ledSteady"], [2, "adv.ledBreathing"]] as const)
             .filter(([value]) => modes.includes(value))
-            .map(([value, label]) => <option key={value} value={value}>{t(locale, label)}</option>)}
-        </select>
-      </label>
+            .map(([value, label]) => ({ value, label: t(locale, label) }))}
+          value={lightMode}
+          onChange={(next) => control.applyTeevolutionDpiLighting("mode", next)}
+        />
+      </div>
       <div className="lod-sliders teevolution-dpi-light-controls">
         <label>
           {t(locale, "adv.brightness")}
@@ -715,18 +680,19 @@ export function DpiLightingCard({ snapshot }: { snapshot: ControlSnapshot }): Re
         </label>
       </div>
       {hint?.sleepTimeouts?.length && status.dpiLedSleepTimeout != null ? (
-        <label className="field-label spaced">
-          {t(locale, "adv.autoSleep")}
-          <select
+        <div className="field-label spaced">
+          <span>{t(locale, "adv.autoSleep")}</span>
+          <OptionMenu
             id="dpi-light-sleep-timeout"
+            ariaLabel={t(locale, "adv.autoSleep")}
+            options={hint.sleepTimeouts.map((seconds) => ({
+              value: seconds,
+              label: sleepLabel(seconds, locale),
+            }))}
             value={status.dpiLedSleepTimeout}
-            onChange={(event) => control.applyDpiLightingSleepTimeout(Number(event.currentTarget.value))}
-          >
-            {hint.sleepTimeouts.map((seconds) => (
-              <option key={seconds} value={seconds}>{sleepLabel(seconds, locale)}</option>
-            ))}
-          </select>
-        </label>
+            onChange={(next) => control.applyDpiLightingSleepTimeout(next)}
+          />
+        </div>
       ) : null}
       <small className="setting-note">{t(locale, "adv.dpiStageNote")}</small>
     </article>
@@ -846,36 +812,40 @@ export function IncottCard({ snapshot }: { snapshot: ControlSnapshot }): ReactNo
       </div>
       {/* Absent over the cable: there is no dongle to light up. */}
       {status.incottReceiverLedMode != null ? (
-        <label className="field-label">
-          {t(locale, "adv.dongleLed")}
-          <select
+        <div className="field-label">
+          <span>{t(locale, "adv.dongleLed")}</span>
+          <OptionMenu
             id="incott-receiver-led"
+            ariaLabel={t(locale, "adv.dongleLed")}
+            options={[
+              { value: 0, label: t(locale, "adv.ledConnectRate") },
+              { value: 1, label: t(locale, "adv.ledBatteryStatus") },
+              { value: 2, label: t(locale, "adv.ledBatteryWarning") },
+            ]}
             value={status.incottReceiverLedMode}
-            onChange={(event) => control.applyIncottReceiverLed(Number(event.currentTarget.value))}
-          >
-            <option value={0}>{t(locale, "adv.ledConnectRate")}</option>
-            <option value={1}>{t(locale, "adv.ledBatteryStatus")}</option>
-            <option value={2}>{t(locale, "adv.ledBatteryWarning")}</option>
-          </select>
-        </label>
+            onChange={(next) => control.applyIncottReceiverLed(next)}
+          />
+        </div>
       ) : null}
       {status.incottFireKeyTimes != null ? (
         <>
-          <label className="field-label spaced">
-            {t(locale, "adv.fireKeyTimes")}
-            <select
+          <div className="field-label spaced">
+            <span>{t(locale, "adv.fireKeyTimes")}</span>
+            <OptionMenu
               id="incott-fire-key-times"
+              ariaLabel={t(locale, "adv.fireKeyTimes")}
+              options={[
+                // 0 is not "off": it fires continuously while the button is
+                // held and stops on release.
+                { value: 0, label: t(locale, "adv.fireKeyHold") },
+                { value: 1, label: "1" },
+                { value: 2, label: "2" },
+                { value: 3, label: "3" },
+              ]}
               value={times}
-              onChange={(event) => control.applyIncottFireKey(Number(event.currentTarget.value), interval)}
-            >
-              {/* 0 is not "off": it fires continuously while the button is
-                  held and stops on release. */}
-              <option value={0}>{t(locale, "adv.fireKeyHold")}</option>
-              <option value={1}>1</option>
-              <option value={2}>2</option>
-              <option value={3}>3</option>
-            </select>
-          </label>
+              onChange={(next) => control.applyIncottFireKey(next, interval)}
+            />
+          </div>
           <label className="field-label spaced">
             {t(locale, "adv.fireKeyInterval")}
             <input
@@ -906,44 +876,50 @@ export function FinalmouseCard({ snapshot }: { snapshot: ControlSnapshot }): Rea
       data-pending-key="finalmouse-dongle-led finalmouse-tournament-scroll finalmouse-tournament-timeout"
     >
       <div className="setting-heading compact"><div><p>FINALMOUSE</p><h2>{t(locale, "adv.dongleTournament")}</h2></div></div>
-      <label className="field-label">
-        {t(locale, "adv.dongleLed")}
-        <select
+      <div className="field-label">
+        <span>{t(locale, "adv.dongleLed")}</span>
+        <OptionMenu
           id="finalmouse-dongle-led"
+          ariaLabel={t(locale, "adv.dongleLed")}
+          options={[
+            { value: 0, label: t(locale, "adv.ledOff") },
+            { value: 1, label: t(locale, "adv.batteryIndicator") },
+            { value: 2, label: t(locale, "adv.solidWhite") },
+          ]}
           value={status.finalmouseDongleLedMode ?? 0}
-          onChange={(event) => control.applyFinalmouseSetting("dongleLed", Number(event.currentTarget.value))}
-        >
-          <option value={0}>{t(locale, "adv.ledOff")}</option>
-          <option value={1}>{t(locale, "adv.batteryIndicator")}</option>
-          <option value={2}>{t(locale, "adv.solidWhite")}</option>
-        </select>
-      </label>
-      <label className="field-label spaced">
-        {t(locale, "adv.tournamentScroll")}
-        <select
+          onChange={(next) => control.applyFinalmouseSetting("dongleLed", next)}
+        />
+      </div>
+      <div className="field-label spaced">
+        <span>{t(locale, "adv.tournamentScroll")}</span>
+        <OptionMenu
           id="finalmouse-tournament-scroll"
+          ariaLabel={t(locale, "adv.tournamentScroll")}
+          options={[
+            { value: 0, label: t(locale, "adv.ledOff") },
+            { value: 1, label: t(locale, "adv.scrollUp") },
+            { value: 2, label: t(locale, "adv.scrollDown") },
+            { value: 3, label: t(locale, "adv.bothDirections") },
+          ]}
           value={status.finalmouseTournamentScrollMode ?? 0}
-          onChange={(event) => control.applyFinalmouseSetting("tournamentScroll", Number(event.currentTarget.value))}
-        >
-          <option value={0}>{t(locale, "adv.ledOff")}</option>
-          <option value={1}>{t(locale, "adv.scrollUp")}</option>
-          <option value={2}>{t(locale, "adv.scrollDown")}</option>
-          <option value={3}>{t(locale, "adv.bothDirections")}</option>
-        </select>
-      </label>
-      <label className="field-label spaced">
-        {t(locale, "adv.passthrough")}
-        <select
+          onChange={(next) => control.applyFinalmouseSetting("tournamentScroll", next)}
+        />
+      </div>
+      <div className="field-label spaced">
+        <span>{t(locale, "adv.passthrough")}</span>
+        <OptionMenu
           id="finalmouse-tournament-timeout"
+          ariaLabel={t(locale, "adv.passthrough")}
+          options={[
+            { value: 100, label: "100 ms" },
+            { value: 500, label: "500 ms" },
+            { value: 1000, label: t(locale, "adv.oneSecond") },
+            { value: 1500, label: t(locale, "adv.halfSeconds") },
+          ]}
           value={status.finalmouseTournamentScrollTimeoutMs ?? 100}
-          onChange={(event) => control.applyFinalmouseSetting("tournamentTimeout", Number(event.currentTarget.value))}
-        >
-          <option value={100}>100 ms</option>
-          <option value={500}>500 ms</option>
-          <option value={1000}>{t(locale, "adv.oneSecond")}</option>
-          <option value={1500}>{t(locale, "adv.halfSeconds")}</option>
-        </select>
-      </label>
+          onChange={(next) => control.applyFinalmouseSetting("tournamentTimeout", next)}
+        />
+      </div>
     </article>
   );
 }
@@ -966,6 +942,14 @@ export function EggFilterCard({ snapshot }: { snapshot: ControlSnapshot }): Reac
         label={t(locale, "adv.jitterFilter")}
         value={status.motionJitterFilter}
         onChange={(next) => control.applyEggFilter("motionJitter", next)}
+        hidden={status.motionJitterFilter == null}
+      />
+      <SwitchRow
+        id="egg-glass-mode-toggle"
+        label={t(locale, "adv.glassMode")}
+        value={status.eggGlassMode}
+        onChange={(next) => control.applyEggGlassMode(next)}
+        hidden={status.eggSupportsGlassMode !== true}
       />
     </article>
   );
@@ -978,18 +962,21 @@ export function EggSpdtCard({ snapshot }: { snapshot: ControlSnapshot }): ReactN
   return (
     <article id="egg-spdt-settings" className="setting-card">
       <div className="setting-heading compact"><div><p>CLICK</p><h2>{t(locale, "adv.gxMode")}</h2></div></div>
-      {(["left", "right"] as const).map((side, index) => (
-        <label key={side} className={`field-label${index > 0 ? " spaced" : ""}`}>
-          {side === "left" ? t(locale, "adv.leftButton") : t(locale, "adv.rightButton")}
-          <select
-            id={`${side}-spdt-select`}
-            value={(side === "left" ? status.leftSpdtMode : status.rightSpdtMode) ?? "Off"}
-            onChange={(event) => control.applyEggSpdtMode(side, event.currentTarget.value as EggSpdtMode)}
-          >
-            {["Off", "GX Safe", "GX Speed"].map((mode) => <option key={mode}>{mode}</option>)}
-          </select>
-        </label>
-      ))}
+      {(["left", "right"] as const).map((side, index) => {
+        const label = side === "left" ? t(locale, "adv.leftButton") : t(locale, "adv.rightButton");
+        return (
+          <div key={side} className={`field-label${index > 0 ? " spaced" : ""}`}>
+            <span>{label}</span>
+            <OptionMenu
+              id={`${side}-spdt-select`}
+              ariaLabel={label}
+              options={["Off", "GX Safe", "GX Speed"].map((mode) => ({ value: mode, label: mode }))}
+              value={(side === "left" ? status.leftSpdtMode : status.rightSpdtMode) ?? "Off"}
+              onChange={(next) => control.applyEggSpdtMode(side, next as EggSpdtMode)}
+            />
+          </div>
+        );
+      })}
     </article>
   );
 }
@@ -1117,18 +1104,19 @@ export function EggCpiCard({ snapshot }: { snapshot: ControlSnapshot }): ReactNo
       open={snapshot.preferences.expandSections}
     >
       <article className="setting-card">
-        <label className="field-label">
-          {t(locale, "adv.enabledStages")}
-          <select
+        <div className="field-label">
+          <span>{t(locale, "adv.enabledStages")}</span>
+          <OptionMenu
             id="egg-cpi-levels"
+            ariaLabel={t(locale, "adv.enabledStages")}
+            options={[1, 2, 3, 4].map((value) => ({
+              value,
+              label: tp(locale, "adv.stageCount", { n: value, s: value === 1 ? "" : "s" }),
+            }))}
             value={levels}
-            onChange={(event) => control.applyEggCpiLevels(Number(event.currentTarget.value))}
-          >
-            {[1, 2, 3, 4].map((value) => (
-              <option key={value} value={value}>{tp(locale, "adv.stageCount", { n: value, s: value === 1 ? "" : "s" })}</option>
-            ))}
-          </select>
-        </label>
+            onChange={(next) => control.applyEggCpiLevels(next)}
+          />
+        </div>
         <div id="egg-cpi-stage-list">
           {stages?.slice(0, levels).map((stage, index) => (
             <CpiStageRow key={index} index={index} stage={stage} locale={locale} />
@@ -1202,37 +1190,40 @@ export function RazerButtonCard({ snapshot }: { snapshot: ControlSnapshot }): Re
         {rows.map((row) => {
           const staged = snapshot.pending.keys.includes(row.key);
           const known = row.options.includes(row.current);
+          const applyRazerRow = (value: string): void => {
+            if (row.key.startsWith("razer-button-")) {
+              control.applyRazerButtonMapping(
+                row.key.slice("razer-button-".length) as RazerButtonControl,
+                value as RazerButtonMapping,
+              );
+            } else {
+              control.applyRazerToggleControl(
+                row.key.slice("razer-toggle-".length) as RazerToggleControl,
+                value,
+              );
+            }
+          };
           return (
-            <label
+            <div
               key={row.key}
               className={`button-remap-row${staged ? " is-staged" : ""}`}
               data-pending-key={row.key}
             >
               <span>{row.name}</span>
               {row.locked ? <output>{row.current}</output> : (
-                <select
+                <OptionMenu
+                  id={row.key}
+                  ariaLabel={row.name}
+                  options={[
+                    ...(known ? [] : [{ value: row.current, label: row.current, disabled: true }]),
+                    ...row.options.map((option) => ({ value: option, label: option })),
+                  ]}
                   value={row.current}
                   disabled={busy}
-                  onChange={(event) => {
-                    const value = event.currentTarget.value;
-                    if (row.key.startsWith("razer-button-")) {
-                      control.applyRazerButtonMapping(
-                        row.key.slice("razer-button-".length) as RazerButtonControl,
-                        value as RazerButtonMapping,
-                      );
-                    } else {
-                      control.applyRazerToggleControl(
-                        row.key.slice("razer-toggle-".length) as RazerToggleControl,
-                        value,
-                      );
-                    }
-                  }}
-                >
-                  {known ? null : <option value={row.current} disabled>{row.current}</option>}
-                  {row.options.map((option) => <option key={option}>{option}</option>)}
-                </select>
+                  onChange={applyRazerRow}
+                />
               )}
-            </label>
+            </div>
           );
         })}
       </div>
@@ -1288,20 +1279,22 @@ export function EggButtonCard({ snapshot }: { snapshot: ControlSnapshot }): Reac
                     )}
                   />
                 </label>
-                <label className="egg-tile-label stacked">
-                  {t(locale, "adv.mapping")}
-                  <select
-                    className="egg-tile-field"
+                <div className="egg-tile-label stacked">
+                  <span>{t(locale, "adv.mapping")}</span>
+                  <OptionMenu
+                    id={`egg-button-${index}`}
+                    ariaLabel={`${name} ${t(locale, "adv.mapping")}`}
+                    options={[
+                      ...(known ? [] : [{ value: current, label: current, disabled: true }]),
+                      ...EGG_BUTTON_MAPPINGS.map((mapping) => ({ value: mapping, label: mapping })),
+                    ]}
                     value={current}
-                    onChange={(event) => control.applyEggButtonMapping(
+                    onChange={(next) => control.applyEggButtonMapping(
                       index as EggButtonIndex,
-                      event.currentTarget.value as EggButtonMapping,
+                      next as EggButtonMapping,
                     )}
-                  >
-                    {known ? null : <option value={current} disabled>{current}</option>}
-                    {EGG_BUTTON_MAPPINGS.map((mapping) => <option key={mapping}>{mapping}</option>)}
-                  </select>
-                </label>
+                  />
+                </div>
               </div>
             );
           })}
@@ -1324,28 +1317,32 @@ export function PulsarProCard({ snapshot }: { snapshot: ControlSnapshot }): Reac
         value={status.wheelAcceleration}
         onChange={(next) => control.applyProSetting("wheelAcceleration", next)}
       />
-      <label className="field-label spaced">
-        {t(locale, "adv.angleTuning")}
-        <select
+      <div className="field-label spaced">
+        <span>{t(locale, "adv.angleTuning")}</span>
+        <OptionMenu
           id="angle-tuning-select"
+          ariaLabel={t(locale, "adv.angleTuning")}
+          options={Array.from({ length: 61 }, (_, index) => index - 30).map((angle) => ({
+            value: angle,
+            label: `${angle}°`,
+          }))}
           value={status.angleTuning ?? 0}
-          onChange={(event) => control.applyProSetting("angleTuning", Number(event.currentTarget.value))}
-        >
-          {Array.from({ length: 61 }, (_, index) => index - 30).map((angle) => (
-            <option key={angle} value={angle}>{angle}°</option>
-          ))}
-        </select>
-      </label>
-      <label className="field-label spaced">
-        {t(locale, "adv.onboardProfile")}
-        <select
+          onChange={(next) => control.applyProSetting("angleTuning", next)}
+        />
+      </div>
+      <div className="field-label spaced">
+        <span>{t(locale, "adv.onboardProfile")}</span>
+        <OptionMenu
           id="profile-select"
+          ariaLabel={t(locale, "adv.onboardProfile")}
+          options={[1, 2, 3, 4, 5, 6].map((value) => ({
+            value,
+            label: tp(locale, "adv.profileOpt", { n: value }),
+          }))}
           value={status.activeProfile ?? 1}
-          onChange={(event) => control.applyProSetting("profile", Number(event.currentTarget.value))}
-        >
-          {[1, 2, 3, 4, 5, 6].map((value) => <option key={value} value={value}>{tp(locale, "adv.profileOpt", { n: value })}</option>)}
-        </select>
-      </label>
+          onChange={(next) => control.applyProSetting("profile", next)}
+        />
+      </div>
     </article>
   );
 }
@@ -1363,21 +1360,20 @@ export function OnboardProfileCard({ snapshot }: { snapshot: ControlSnapshot }):
   return (
     <article id="onboard-profile-settings" className="setting-card">
       <div className="setting-heading compact"><div><h2>{t(locale, "prof.onboardTitle")}</h2></div></div>
-      <label className="field-label spaced">
-        {t(locale, "prof.activeProfile")}
-        <select
+      <div className="field-label spaced">
+        <span>{t(locale, "prof.activeProfile")}</span>
+        <OptionMenu
           id="onboard-profile-select"
-          value={status.activeProfile}
-          onChange={(event) => control.applyProfileSelection(Number(event.currentTarget.value))}
-        >
-          {Array.from({ length: status.profileCount }, (_, index) => index + 1).map((value) => (
+          ariaLabel={t(locale, "prof.activeProfile")}
+          options={Array.from({ length: status.profileCount }, (_, index) => index + 1).map((value) => ({
+            value,
             // Devices that store their own names show them; the rest number.
-            <option key={value} value={value}>
-              {status.profileNames?.[value - 1] ?? tp(locale, "adv.profileOpt", { n: value })}
-            </option>
-          ))}
-        </select>
-      </label>
+            label: status.profileNames?.[value - 1] ?? tp(locale, "adv.profileOpt", { n: value }),
+          }))}
+          value={status.activeProfile}
+          onChange={(next) => control.applyProfileSelection(next)}
+        />
+      </div>
       <p className="field-note">
         {t(locale, "prof.profileStores")}
       </p>

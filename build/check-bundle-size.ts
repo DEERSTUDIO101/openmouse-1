@@ -159,7 +159,13 @@ const BUDGET_BYTES: Record<string, number> = {
   // artreq.* dictionary) were both removed; artwork requests now open the
   // documented GitHub issue form instead. The budget stays — like the earlier
   // crowd-sourced removal, the aggregate only shrank.
-  ".js": 1_845_000,
+  // Raised to 1,880 kB for a batch of feature PRs merged together: the unified
+  // mouse-option widgets (OptionMenu, StepperSlider, and the M3 controls in
+  // #288), the EGG 4K v2 sensor-glass-mode / polling-divider card (#352), the
+  // WLmouse Beast X 4K driver wiring (#287, which also pulls its protocol codec
+  // in through SUPPORTED_HID_FILTERS), and the Razer Bluetooth-mode notice
+  // (#357). Measured aggregate is 1,850.7 kB, leaving ~29 kB of headroom.
+  ".js": 1_880_000,
 };
 
 const ASSETS = join("dist", "assets");

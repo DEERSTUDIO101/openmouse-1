@@ -21,6 +21,7 @@ export interface CardAvailability {
   teevolutionDpiLighting: boolean;
   finalmouse: boolean;
   incott: boolean;
+  dongleLed: boolean;
   eggFilter: boolean;
   eggSpdt: boolean;
   eggPolling: boolean;
@@ -63,6 +64,7 @@ const NOTHING: CardAvailability = {
   teevolutionDpiLighting: false,
   finalmouse: false,
   incott: false,
+  dongleLed: false,
   eggFilter: false,
   eggSpdt: false,
   eggPolling: false,
@@ -137,7 +139,7 @@ export function cardAvailability(snapshot: ControlSnapshot): CardAvailability {
     lighting: Boolean(status.lighting || status.lightingZones?.length),
     lightingAdvanced: host && !isM2Nex && Boolean(status.lighting || status.lightingZones?.length),
     onboardProfiles: (status.profileCount ?? 0) > 1 && status.activeProfile != null,
-    buttonMapping: host && Boolean(status.buttonMappings) && Boolean(status.buttonOptions?.length),
+    buttonMapping: Boolean(status.buttonMappings) && Boolean(status.buttonOptions?.length),
     // K-snake/M2-NEX exposes the macro write/commit path. The editor starts
     // with local slots because this firmware does not expose a reliable macro
     // read through the browser.
@@ -170,9 +172,12 @@ export function cardAvailability(snapshot: ControlSnapshot): CardAvailability {
     // actually reported.
     incott: host
       && (status.incottFireKeyTimes != null || status.incottReceiverLedMode != null),
+    // Drivers report a boolean only for receivers that answer the LED command.
+    dongleLed: typeof status.dongleLedEnabled === "boolean",
     eggFilter: eggs,
     eggSpdt: eggs,
-    eggPolling: eggs && snapshot.preferences.showExperimental,
+    // The 4K v2 reports no divider: its polling byte is a vendor enum.
+    eggPolling: eggs && snapshot.preferences.showExperimental && status.eggPollingDivider != null,
     eggCpi: eggs,
     eggButtons: eggs
       && status.eggMulticlickFilters !== undefined && status.eggButtonMappings !== undefined,

@@ -1,8 +1,8 @@
 import { useEffect, useState, type ReactNode } from "react";
 import {
   BUNNY_HOP_LIMITS,
-  capabilitiesForFormat,
   clampBunnyHopMs,
+  reportRateCapabilitiesFor,
   reportRatesFor,
 } from "@openmouse/protocol/drivers/logitech/onboard-profiles";
 import * as control from "../../device/controller";
@@ -24,7 +24,9 @@ export function PollingCard({ snapshot }: { snapshot: ControlSnapshot }): ReactN
   const locale = snapshot.preferences.locale;
   const staged = snapshot.pending.keys.includes("polling-rate");
   const entry = snapshot.profile.entry;
-  const rates = snapshot.profileFormat ? capabilitiesForFormat(snapshot.profileFormat.id).reportRates : null;
+  const rates = snapshot.profileFormat
+    ? reportRateCapabilitiesFor(snapshot.profileFormat.id, status.transportIds?.USB)
+    : null;
   const perProfile = entry !== null && rates !== null;
   const locked = snapshot.profileFormat?.writable !== true;
   const shared = (snapshot.profileFormat?.id ?? 6) < 6;

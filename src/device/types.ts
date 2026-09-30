@@ -93,6 +93,8 @@ export interface AnalogTuning {
   actuation: number;
   rapidTrigger: number;
   haptics: number;
+  /** Rapid trigger on/off. Undefined when the mouse does not report it. */
+  rapidTriggerEnabled?: boolean;
 }
 
 export interface AnalogTuningState {

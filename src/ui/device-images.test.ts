@@ -26,6 +26,20 @@ test("G502 X receiver artwork follows the paired mouse name", () => {
 test("PRO X 2 Superstrike resolves by name over any shared receiver", () => {
   assert.equal(deviceImage(dev(0x046d, 0xc547), "PRO X 2 Superstrike"), CDN + "logitech-pro-x2-superstrike.png");
   assert.equal(deviceImage(null, "Logitech PRO X2 SUPERSTRIKE"), CDN + "logitech-pro-x2-superstrike.png");
+  // The X2's own Lightspeed receiver (mouse-protocol #117).
+  assert.equal(deviceImage(dev(0x046d, 0x40bd), "PRO X 2 Superstrike"), CDN + "logitech-pro-x2-superstrike.png");
+});
+
+test("PRO X3 SUPERSTRIKE gets its own render, not the X2's", () => {
+  // The X3's Lightspeed receiver (mouse-protocol #117); the driver reports
+  // the paired mouse as "PRO X3 SUPERSTRIKE".
+  assert.equal(deviceImage(dev(0x046d, 0xc54f), "PRO X3 SUPERSTRIKE"), CDN + "logitech-pro-x3-superstrike.png");
+  assert.equal(deviceImage(null, "Logitech PRO X3 SUPERSTRIKE"), CDN + "logitech-pro-x3-superstrike.png");
+  assert.equal(deviceImage(null, "PRO X 3 Superstrike"), CDN + "logitech-pro-x3-superstrike.png");
+  // Neighbouring names must not collide: X2 keeps its render, and the
+  // unrelated Attack Shark X3 keeps its own.
+  assert.equal(deviceImage(null, "PRO X 2 Superstrike"), CDN + "logitech-pro-x2-superstrike.png");
+  assert.equal(deviceImage(null, "Attack Shark X3"), CDN + "attackshark-x3.png");
 });
 
 test("Razer Orochi V2 resolves by name", () => {
@@ -69,12 +83,23 @@ test("Attack Shark R5 Ultra resolves by name", () => {
   assert.equal(deviceImage(null, "Attack Shark R5 Ultra"), CDN + "attackshark-r5-ultra.png");
 });
 
+test("IPI Float 88 resolves by name", () => {
+  assert.equal(deviceImage(null, "IPI Float 88 (Wired)"), "/devices/ipi-float-88.png");
+  assert.equal(deviceImage(null, "IPI Float 88 (Wireless)"), "/devices/ipi-float-88.png");
+});
+
 test("ATK ZERO resolves by name", () => {
   assert.equal(deviceImage(null, "ATK ZERO"), CDN + "atk-zero.png");
 });
 
 test("Dareu A950 PRO Mg resolves by name", () => {
   assert.equal(deviceImage(null, "Dareu A950 PRO Mg"), CDN + "dareu-a950-pro-mg.png");
+});
+
+test("Delux M800 Mini and M800 family resolve by name", () => {
+  assert.equal(deviceImage(null, "Delux M800 Mini"), "/devices/delux-m800-mini.png");
+  assert.equal(deviceImage(null, "Delux M800 Mini (Wireless)"), "/devices/delux-m800-mini.png");
+  assert.equal(deviceImage(null, "Delux M800 Pro"), "/devices/delux-m800-mini.png");
 });
 
 test("Attack Shark R2 resolves by name (PID 0x402D is shared with the M5 Pro)", () => {
@@ -203,7 +228,6 @@ test("Finalmouse Starlight-12 / ULX resolves by name", () => {
 
 test("test-needed and unsupported models are not given new artwork", () => {
   assert.equal(deviceImage(null, "Razer Basilisk V3"), CDN + "unknown-device.png");
-  assert.equal(deviceImage(null, "Attack Shark X3"), CDN + "unknown-device.png");
   assert.equal(deviceImage(null, "Endgame Gear OP1w 4K v2"), CDN + "unknown-device.png");
   assert.equal(deviceImage(null, "VGN Dragonfly R1 Pro"), CDN + "unknown-device.png");
   assert.equal(deviceImage(null, "Razer Viper 8KHz"), CDN + "unknown-device.png");
@@ -229,6 +253,15 @@ test("Noir Gear M2-NEX resolves to its maintainer-hosted artwork", () => {
 test("Attack Shark X11 does not inherit K-snake artwork", () => {
   assert.equal(deviceImage(null, "Attack Shark X11"), CDN + "unknown-device.png");
   assert.equal(deviceImage(null, "Attack Shark X11 SE"), CDN + "unknown-device.png");
+});
+
+test("Attack Shark X3 / X3 Pro resolve by name", () => {
+  assert.equal(deviceImage(null, "Attack Shark X3"), CDN + "attackshark-x3.png");
+  assert.equal(deviceImage(null, "Attack Shark X3 Pro"), CDN + "attackshark-x3.png");
+  // Neighbouring models must not inherit it.
+  assert.equal(deviceImage(null, "Attack Shark X11"), CDN + "unknown-device.png");
+  // Pulsar X3 keeps its own generic Pulsar render.
+  assert.equal(deviceImage(null, "Pulsar X3 Medium"), CDN + "pulsar-x2-v2.png");
 });
 
 test("the MCHOSE A7 V3 family gets its own render, not the V2's", () => {

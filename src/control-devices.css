@@ -1,9 +1,9 @@
 #pulsar-advanced { margin-top: .65rem; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: .65rem; padding-bottom: .4rem; }
 
 #pulsar-advanced > .setting-card { min-height: 0; padding: .8rem; }
-#pulsar-advanced input[type="number"], #pulsar-advanced select { width: 100%; box-sizing: border-box; margin-top: .2rem; padding: .48rem .55rem; border: 1px solid var(--line-strong); border-radius: 6px; outline: none; background: var(--surface-input); color: var(--text-input); font: inherit; color-scheme: dark; }
-#pulsar-advanced input[type="number"]:focus, #pulsar-advanced select:focus { border-color: var(--faint); box-shadow: 0 0 0 2px rgb(255 255 255 / 4%); }
-#pulsar-advanced input:disabled, #pulsar-advanced select:disabled { cursor: not-allowed; opacity: .45; }
+#pulsar-advanced input[type="number"], #pulsar-advanced select, #debounce-settings select { width: 100%; box-sizing: border-box; margin-top: .2rem; padding: .48rem .55rem; border: 1px solid var(--line-strong); border-radius: 6px; outline: none; background: var(--surface-input); color: var(--text-input); font: inherit; color-scheme: dark; }
+#pulsar-advanced input[type="number"]:focus, #pulsar-advanced select:focus, #debounce-settings select:focus { border-color: var(--faint); box-shadow: 0 0 0 2px rgb(255 255 255 / 4%); }
+#pulsar-advanced input:disabled, #pulsar-advanced select:disabled, #debounce-settings select:disabled { cursor: not-allowed; opacity: .45; }
 #pulsar-advanced input[type="checkbox"] { width: .85rem; height: .85rem; margin: 0; accent-color: var(--ui-accent); }
 #pulsar-advanced .sleep-time-picker { display: flex; align-items: start; gap: .35rem; margin-top: .35rem; }
 #pulsar-advanced .sleep-time-picker label { display: grid; gap: .2rem; min-width: 0; flex: 1 1 0; color: var(--faint); font-size: .58rem; text-align: center; }
@@ -59,6 +59,11 @@
 #logitech-analog-button-settings .superstrike-steps > div { display: grid; grid-template-columns: repeat(auto-fit, minmax(1.45rem, 1fr)); gap: .22rem; }
 #logitech-analog-button-settings .superstrike-steps button { min-width: 0; padding: .34rem .12rem; border: 1px solid var(--border); border-radius: 5px; background: var(--input); color: var(--text-soft); font: 650 .59rem var(--font-mono); }
 #logitech-analog-button-settings .superstrike-steps button:hover { border-color: var(--ghost); color: var(--text-hover); }
+#logitech-analog-button-settings .superstrike-steps button:disabled { opacity: .4; cursor: not-allowed; }
+#logitech-analog-button-settings .superstrike-rapid-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; min-width: 0; }
+#logitech-analog-button-settings .superstrike-rapid-controls .superstrike-switch { flex: 0 0 auto; }
+#logitech-analog-button-settings .superstrike-rapid-controls .superstrike-switch > div { grid-template-columns: repeat(2, 2.7rem); }
+#logitech-analog-button-settings .superstrike-rapid-controls > .superstrike-steps:not(.superstrike-switch) { flex: 1 1 8rem; min-width: 0; }
 #logitech-analog-button-settings .superstrike-steps button[aria-pressed="true"] { border-color: var(--ui-accent); background: var(--ui-accent); color: var(--ui-accent-ink); }
 #logitech-analog-button-settings .superstrike-apply-button { width: 100%; margin-top: .7rem; padding: .48rem .62rem; border: 1px solid color-mix(in srgb, var(--ui-accent) 62%, var(--border)); border-radius: 6px; background: var(--ui-accent-soft); color: var(--ui-accent); font-size: .62rem; font-weight: 750; transition: border-color .18s ease, background .18s ease, transform .18s ease; }
 #logitech-analog-button-settings .superstrike-apply-button:hover { border-color: var(--ui-accent); background: var(--ui-accent); color: var(--ui-accent-ink); transform: translateY(-1px); }
@@ -89,3 +94,10 @@
   #egg-button-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
+#logitech-analog-button-settings .superstrike-press-meters { display: grid; gap: .35rem; margin: .2rem 0 .8rem; }
+#logitech-analog-button-settings .superstrike-press-meter { display: grid; grid-template-columns: 2.6rem 1fr; align-items: center; gap: .6rem; font: 650 .62rem var(--font-mono); color: var(--text-soft); }
+#logitech-analog-button-settings .superstrike-press-meter > div { display: grid; grid-template-columns: repeat(10, 1fr); gap: .2rem; }
+#logitech-analog-button-settings .superstrike-press-meter i { height: .55rem; border-radius: 2px; background: var(--input); border: 1px solid var(--border); }
+#logitech-analog-button-settings .superstrike-press-meter i[data-on="true"] { background: var(--accent, #2f8cff); border-color: transparent; }
+#logitech-analog-button-settings .superstrike-press-meter i[data-actuation="true"] { border-color: var(--warning); border-width: 2px; }
+#logitech-analog-button-settings .superstrike-press-meter i[data-actuation="true"][data-on="true"] { background: var(--warning); }

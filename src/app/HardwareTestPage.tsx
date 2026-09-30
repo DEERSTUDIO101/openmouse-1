@@ -337,7 +337,7 @@ export function HardwareTestPage({ snapshot }: { snapshot: ControlSnapshot }): R
             if (lodCurrent === null) {
               legs.push({ setting: "Lift-off", current: "—", target: "—", status: "skip", detail: "no lift-off distance is reported on this device." });
             } else {
-              const lodTarget = pickFlashLiftOffTarget(lodCurrent);
+              const lodTarget = pickFlashLiftOffTarget(lodCurrent, live.status.supportedLiftOffDistances);
               if (lodTarget === null) {
                 legs.push({ setting: "Lift-off", current: lodCurrent, target: "—", status: "skip", detail: "no alternate lift-off distance is available." });
               } else {

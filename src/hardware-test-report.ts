@@ -127,6 +127,11 @@ export function deviceInfoFromSnapshot(snapshot: ControlSnapshot): HardwareDevic
   const status = snapshot.status;
   const selected = snapshot.devices.find((device) => device.selected);
   const receiver = status?.atkReceiver;
+  // Settings fields count only when the driver read them from the mouse. A
+  // driver whose settings read failed (settingsReady: false) or that has no
+  // read-back (valuesVerified: false) still fills them with defaults, so drop
+  // them here and the read-back checks fail instead of passing on those.
+  const settings = (status?.ui?.valuesVerified ?? status?.ui?.settingsReady !== false) ? status : null;
   return {
     present: status !== null,
     brand: status?.brand ?? null,
@@ -136,15 +141,15 @@ export function deviceInfoFromSnapshot(snapshot: ControlSnapshot): HardwareDevic
     productName: selected?.name ?? null,
     transport: selected?.transport ?? null,
     connectionType: status?.connectionType ?? null,
-    pollingRateHz: status?.pollingRateHz ?? null,
+    pollingRateHz: settings?.pollingRateHz ?? null,
     supportedPollingRates: status?.supportedPollingRates ?? null,
-    dpi: status?.dpi ?? null,
-    dpiStages: status?.dpiStages ?? null,
-    activeDpiStage: status?.activeDpiStage ?? null,
+    dpi: settings?.dpi ?? null,
+    dpiStages: settings?.dpiStages ?? null,
+    activeDpiStage: settings?.activeDpiStage ?? null,
     batteryPercent: status?.batteryPercent ?? null,
     batteryState: status?.batteryState ?? null,
     firmware: status && status.firmware.length > 0 ? status.firmware : null,
-    liftOffDistance: status?.liftOffDistance ?? null,
+    liftOffDistance: settings?.liftOffDistance ?? null,
     driverFamily: status?.ui?.family ?? null,
     deviceMode: status?.deviceMode ?? null,
     collectionsSummary: null,
@@ -169,6 +174,13 @@ const NO_DEVICE_DEFERRED: ReadonlyArray<[string, string]> = [
 ];
 
 const LOD_VALUES = new Set(["Low", "Medium", "High"]);
+
+/**
+ * Sanity ceiling for a DPI read-back, meant to catch garbage (0xFFFF reads
+ * back as 65535) rather than to describe any sensor. PAW3950/PAW3955 parts
+ * legitimately run to 42000, so this must stay above that.
+ */
+const MAX_PLAUSIBLE_DPI = 50_000;
 
 /** The checks that are answered purely from the driver read-back. */
 export function automaticChecks(info: HardwareDeviceInfo): HardwareTestResult[] {
@@ -217,12 +229,12 @@ export function automaticChecks(info: HardwareDeviceInfo): HardwareTestResult[] 
     detail: driver ?? "No driver produced a status read.",
   });
 
-  const dpiOk = info.dpi !== null && info.dpi > 0 && info.dpi <= 30000;
+  const dpiOk = info.dpi !== null && info.dpi > 0 && info.dpi <= MAX_PLAUSIBLE_DPI;
   results.push({
     key: "dpi",
     label: "DPI read-back",
     status: dpiOk ? "pass" : "fail",
-    detail: dpiOk ? `${info.dpi!.toLocaleString()} DPI` : info.dpi === null ? "The sensor DPI was not reported." : "Reported DPI is out of range.",
+    detail: dpiOk ? `${info.dpi!.toLocaleString()} DPI` : info.dpi === null ? "The sensor DPI was not read from the device." : "Reported DPI is out of range.",
   });
 
   const rate = info.pollingRateHz;
@@ -242,7 +254,7 @@ export function automaticChecks(info: HardwareDeviceInfo): HardwareTestResult[] 
       key: "pollingRead",
       label: "Polling rate read-back",
       status: "fail",
-      detail: "The polling rate was not reported.",
+      detail: "The polling rate was not read from the device.",
     });
   }
 
@@ -271,7 +283,7 @@ export function automaticChecks(info: HardwareDeviceInfo): HardwareTestResult[] 
   }
 
   if (info.dpiStages && info.dpiStages.length > 0) {
-    const allValid = info.dpiStages.every((value) => value > 0 && value <= 30000);
+    const allValid = info.dpiStages.every((value) => value > 0 && value <= MAX_PLAUSIBLE_DPI);
     results.push({
       key: "dpiStages",
       label: "DPI stages read-back",
@@ -324,7 +336,7 @@ export function automaticChecks(info: HardwareDeviceInfo): HardwareTestResult[] 
   if (info.dpiStages && info.dpiStages.length > 0) flashFields.push("dpi stages");
   const lodOk = info.liftOffDistance === null || LOD_VALUES.has(info.liftOffDistance);
   const batteryOk = info.batteryPercent === null || (info.batteryPercent >= 0 && info.batteryPercent <= 100);
-  const stagesOk = !info.dpiStages || info.dpiStages.length === 0 || info.dpiStages.every((value) => value > 0 && value <= 30000);
+  const stagesOk = !info.dpiStages || info.dpiStages.length === 0 || info.dpiStages.every((value) => value > 0 && value <= MAX_PLAUSIBLE_DPI);
   const flashOk = dpiOk && rate !== null && rate > 0 && lodOk && batteryOk && stagesOk;
   results.push({
     key: "flashRead",
@@ -357,7 +369,7 @@ export function pickFlashDpiTarget(current: number | null, options: readonly num
   if (current === null || options.length === 0) return null;
   const candidates = [800, 1600, 2400, 3200, current * 2, Math.round(current / 2)];
   for (const candidate of candidates) {
-    if (candidate !== current && candidate > 0 && candidate <= 30000 && options.includes(candidate)) return candidate;
+    if (candidate !== current && candidate > 0 && candidate <= MAX_PLAUSIBLE_DPI && options.includes(candidate)) return candidate;
   }
   const alternate = options.find((option) => option !== current);
   return alternate ?? null;
@@ -380,15 +392,17 @@ export function pickFlashPollRateTarget(current: number | null, options: readonl
 }
 
 /**
- * Picks the least obtrusive alternate lift-off level. Medium is the middle of
- * the physical range, so it is preferred whenever the device is not already on
- * it; a Medium device falls back to Low.
+ * Picks the least obtrusive alternate lift-off level the device offers.
+ * Medium is the middle of the physical range, so it is preferred whenever the
+ * device is not already on it, then Low, then High (a Low/High-only mouse
+ * such as the G-Wolves HTX Mini).
  */
 export function pickFlashLiftOffTarget(
   current: "Low" | "Medium" | "High" | null,
+  supported: readonly ("Low" | "Medium" | "High")[] = ["Low", "Medium", "High"],
 ): "Low" | "Medium" | "High" | null {
   if (current === null) return null;
-  return current === "Medium" ? "Low" : "Medium";
+  return (["Medium", "Low", "High"] as const).find((level) => level !== current && supported.includes(level)) ?? null;
 }
 
 /** One setting's write → read-back → restore leg of the flash round-trip. */

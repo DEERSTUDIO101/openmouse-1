@@ -39,6 +39,8 @@ test("drives a device end to end over the socket", async () => {
   const listing = hid.getDevices();
   assert.equal(fake.sent[0].type, "list");
   assert.ok(Array.isArray(fake.sent[0].vendorIds) && (fake.sent[0].vendorIds as number[]).length > 0);
+  // Razer's Bluetooth id, so a V3 Pro in Bluetooth mode can explain itself.
+  assert.ok((fake.sent[0].vendorIds as number[]).includes(0x068e));
   fake.reply({ id: fake.sent[0].id, ok: true, devices: [MOUSE] });
 
   const [device] = await listing;

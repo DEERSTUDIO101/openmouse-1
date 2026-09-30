@@ -205,9 +205,12 @@ test("a driver may opt into the advanced section and still suppress its cards", 
 });
 
 test("the experimental polling card follows the interface preference", () => {
-  const egg = { status: { brand: "Endgame Gear", ui: { family: "egg-op1" } } };
+  const egg = { status: { brand: "Endgame Gear", ui: { family: "egg-op1" }, eggPollingDivider: 1 } };
   assert.equal(cardAvailability(snapshot({ ...egg, showExperimental: true })).eggPolling, true);
   assert.equal(cardAvailability(snapshot({ ...egg, showExperimental: false })).eggPolling, false);
+  // The OP1w/XM2w 4K v2 driver leaves the divider out, so its card stays hidden.
+  const egg4k = { status: { brand: "Endgame Gear", ui: { family: "egg-op1" } } };
+  assert.equal(cardAvailability(snapshot({ ...egg4k, showExperimental: true })).eggPolling, false);
 });
 
 test("onboard profiles need a Logitech mouse reporting a known mode", () => {
@@ -384,6 +387,38 @@ test("M2-NEX keeps lighting out of Advanced", () => {
   }));
   assert.equal(has.lighting, true);
   assert.equal(has.lightingAdvanced, false);
+});
+
+test("the generic button card follows the driver\'s mappings, not the advanced section", () => {
+  const has = cardAvailability(snapshot({
+    status: {
+      brand: "G-Wolves",
+      ui: { family: "vgn-f2" },
+      motionSync: true,
+      buttonMappings: { Left: "Left Click", Forward: "Forward" },
+      buttonOptions: ["Left Click", "Forward", "DPI Loop"],
+    },
+  }));
+  assert.equal(has.buttonMapping, true);
+  assert.equal(has.processing, false, "the rest of the advanced section stays closed");
+});
+
+test("the G-Wolves XVI generation opens sleep, debounce and processing, but not signal", () => {
+  const cards = cardAvailability(snapshot({
+    status: {
+      brand: "G-Wolves",
+      ui: { family: "gwolves-xvi" },
+      motionSync: false,
+      angleSnapping: true,
+      rippleControl: null,
+      debounceMs: 2,
+      sleepTimeout: 60,
+    },
+  }));
+  assert.equal(cards.sleep, true);
+  assert.equal(cards.debounce, true);
+  assert.equal(cards.processing, true);
+  assert.equal(cards.signal, false);
 });
 
 test("the Incott card follows the fields the device reported, not a brand trait", () => {

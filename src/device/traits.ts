@@ -42,6 +42,7 @@ const BY_FAMILY: Readonly<Record<string, Partial<DriverTraits>>> = {
   wlmouse: DIRECT_MODE,
   lamzu: DIRECT_MODE,
   "attack-shark": DIRECT_MODE,
+  bytech: DIRECT_MODE,
   crdrako: DIRECT_MODE,
   atk: DIRECT_MODE,
   "atk-bitmouse": DIRECT_MODE,
@@ -50,6 +51,11 @@ const BY_FAMILY: Readonly<Record<string, Partial<DriverTraits>>> = {
   // The M6 reads debounce and sleep from its 0x06 status report and publishes
   // its own option lists, so it takes the plain flags rather than DIRECT_MODE.
   "keychron-m6": { advancedSection: true, sleep: true, debounce: true },
+  // Launcher offers no sleep setting for the 4K family, so only debounce.
+  "keychron-4k": { advancedSection: true, debounce: true },
+  // The Beast X 4K skips the compx transport the rest of WLMouse uses and
+  // publishes its own sleep and debounce lists, so it takes the plain flags.
+  "wlmouse-4k": { advancedSection: true, sleep: true, debounce: true },
   fantech: { advancedSection: true, sleep: true, directMode: true },
   // GearHub-V5 (Attack Shark R2, Lingbao M5 Pro): reads debounce, standby time
   // and the two "move correction" toggles out of its OPTIONPARAM0 block. Not a
@@ -72,6 +78,9 @@ const BY_FAMILY: Readonly<Record<string, Partial<DriverTraits>>> = {
   // from ui.showAdvancedSection, but sleep/debounce still need the flags
   // here or the cards never render regardless of applyPulsarValue's list).
   incott: { advancedSection: true, sleep: true, debounce: true },
+  // The G-Wolves XVI generation (HTX Mini 8K) publishes its own sleep list
+  // and reads its before-press debounce; no signal-strength command exists.
+  "gwolves-xvi": { advancedSection: true, sleep: true, debounce: true },
   // HyperX publishes DPI, polling rate and lift-off in the settings grid only;
   // no signal, sleep or debounce card exists, and the processing card is
   // deliberately hidden, so no advanced-section flags are needed.
@@ -85,6 +94,7 @@ const BY_BRAND: Readonly<Record<string, string>> = {
   VGN: "vgn",
   Logitech: "logitech-hidpp",
   "Attack Shark": "attack-shark",
+  IPI: "bytech",
 };
 
 export function familyOf(status: MouseStatus): string {

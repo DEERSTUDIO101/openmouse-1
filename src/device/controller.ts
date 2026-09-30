@@ -84,6 +84,7 @@ import {
   clampDpi,
   describeOffset,
   dpiStageCapabilitiesForOptions,
+  reportRateCapabilitiesFor,
   reportRatesForDevice,
   validateProfileName,
   reproduceProfile,
@@ -143,6 +144,7 @@ import { teevolutionProfileForCid } from "@openmouse/protocol/teevolution";
 import { VgnF2HidClient } from "@openmouse/protocol/drivers/vgn/hid";
 import { KeychronNapeHidClient } from "@openmouse/protocol/drivers/keychron/nape-hid";
 import { KeychronM6HidClient } from "@openmouse/protocol/drivers/keychron/m6-hid";
+import { Keychron4kHidClient } from "@openmouse/protocol/drivers/keychron/mouse-4k-hid";
 import type { GloriousLighting } from "@openmouse/protocol/glorious";
 import { GloriousHidClient } from "@openmouse/protocol/drivers/glorious/hid";
 import { GloriousClassicHidClient } from "@openmouse/protocol/drivers/glorious/classic-hid";
@@ -166,11 +168,14 @@ import {
   type KeychronNapeButtonAction,
   type KeychronNapeLayerKeymap,
 } from "@openmouse/protocol/keychron";
-import { SUPPORTED_HID_FILTERS, VENDOR_ID } from "@openmouse/protocol/drivers/vendors";
+import { VENDOR_ID } from "@openmouse/protocol/drivers/vendors";
+import { BASILISK_V3_PRO_BLUETOOTH, HID_FILTERS } from "./hid-filters";
 import { WLMouseHidClient } from "@openmouse/protocol/drivers/wlmouse/hid";
+import { WLMouseBeastX4kHidClient } from "@openmouse/protocol/drivers/wlmouse/beast-x-4k-hid";
 import { MicrosoftHidClient } from "@openmouse/protocol/drivers/microsoft/hid";
 import { DareuHidClient } from "@openmouse/protocol/drivers/dareu/hid";
 import { IncottHidClient } from "@openmouse/protocol/drivers/incott/hid";
+import { BytechHidClient } from "@openmouse/protocol/drivers/bytech/hid";
 import { parsePreviewMode, previewsEnabled, type PreviewMode } from "../preview-modes";
 import { sleepLabel } from "./options";
 import { traitsFor } from "./traits";
@@ -245,7 +250,7 @@ function activeAs<T>(...classes: ClientClass<T>[]): T | null {
 
 const DM_CLASSES = [WLMouseHidClient, LamzuHidClient, LamzuAtlantisHidClient, AtkHidClient, AtkBitmouseHidClient, NinjutsoHidClient] as const;
 const RAZER_CLASSES = [RazerHidClient, RazerViperMiniHidClient, RazerViperHidClient, RazerCobraHidClient] as const;
-const NEEDS_OPEN = [LamzuAtlantisHidClient, TeevolutionHidClient, VgnF2HidClient, KeychronNapeHidClient, KeychronM6HidClient, ModdoHidClient, ZaunkoenigHidClient, CorsairHidClient, FantechHidClient, WallhackMouseHidClient, WallhackKeyboardHidClient, GloriousHidClient, GloriousClassicHidClient, MchoseHidClient, MchoseDockHidClient, MchoseA5ProMaxHidClient, MchoseV3HidClient, MicrosoftHidClient, DareuHidClient, IncottHidClient] as const;
+const NEEDS_OPEN = [LamzuAtlantisHidClient, TeevolutionHidClient, VgnF2HidClient, KeychronNapeHidClient, KeychronM6HidClient, WLMouseBeastX4kHidClient, ModdoHidClient, ZaunkoenigHidClient, CorsairHidClient, FantechHidClient, WallhackMouseHidClient, WallhackKeyboardHidClient, GloriousHidClient, GloriousClassicHidClient, MchoseHidClient, MchoseDockHidClient, MchoseA5ProMaxHidClient, MchoseV3HidClient, MicrosoftHidClient, DareuHidClient, IncottHidClient, BytechHidClient] as const;
 const PULSAR_CLASSES = [PulsarHidClient, PulsarProHidClient, PulsarXs1HidClient] as const;
 
 const logitechClient = (): LogitechHidppClient | null => activeAs(LogitechHidppClient);
@@ -266,6 +271,8 @@ const orbitalClient = (): OrbitalHidClient | null => activeAs(OrbitalHidClient);
 const vgnClient = (): VgnF2HidClient | null => activeAs(VgnF2HidClient);
 const keychronNapeClient = (): KeychronNapeHidClient | null => activeAs(KeychronNapeHidClient);
 const keychronM6Client = (): KeychronM6HidClient | null => activeAs(KeychronM6HidClient);
+const keychron4kClient = (): Keychron4kHidClient | null => activeAs(Keychron4kHidClient);
+const wlmouse4kClient = (): WLMouseBeastX4kHidClient | null => activeAs(WLMouseBeastX4kHidClient);
 const wallhackMouseClient = (): WallhackMouseHidClient | null => activeAs(WallhackMouseHidClient);
 const incottClient = (): IncottHidClient | null => activeAs(IncottHidClient);
 /** Pulsar is the only family with the collection-explorer onboarding path. */
@@ -406,7 +413,9 @@ export function getActiveDevice(): HIDDevice | null {
 
 function buildProfileView(): ProfileView {
   const entry = editedProfileEntry();
-  const rates = lastProfileFormat ? capabilitiesForFormat(lastProfileFormat.id).reportRates : null;
+  const rates = lastProfileFormat
+    ? reportRateCapabilitiesFor(lastProfileFormat.id, latestDeviceStatus?.transportIds?.USB)
+    : null;
   return {
     entry,
     summary: describeProfileEntry(entry),
@@ -2586,7 +2595,7 @@ function handleHidDisconnect(event: HIDConnectionEvent): void {
 
 async function requestSupportedClient(): Promise<SupportedClient | null> {
   if (!navigator.hid) throw new Error(st("ctl.noWebHid"));
-  const devices = await navigator.hid.requestDevice({ filters: SUPPORTED_HID_FILTERS });
+  const devices = await navigator.hid.requestDevice({ filters: HID_FILTERS });
   if (devices.length === 0) return null;
 
   if (devices.some((device) => eggWeIsSupported(device))) {
@@ -2602,6 +2611,11 @@ async function requestSupportedClient(): Promise<SupportedClient | null> {
   if (best?.client) {
     if (isEggWeClient(best.client)) await eggWePrepare(best.client);
     return best.client;
+  }
+
+  if (devices.some((device) => device.vendorId === BASILISK_V3_PRO_BLUETOOTH.vendorId
+    && device.productId === BASILISK_V3_PRO_BLUETOOTH.productId)) {
+    throw new Error(st("ctl.razerBluetooth"));
   }
 
   const details = devices.map((device) => describeHidDevice(device)).join(" · ");
@@ -2974,6 +2988,25 @@ export function applyLogitechAxisDpi(dpiX: number, dpiY: number): void {
   });
 }
 
+/**
+ * Live HITS press depth per button, 0 to 10. The mouse only streams it while
+ * armed (see startAnalogPressStream), and stays silent otherwise even for a
+ * hardware press. Nothing arrives when no Logitech mouse is connected.
+ */
+export function subscribeAnalogPress(listener: (left: number, right: number) => void): () => void {
+  return logitechClient()?.onAnalogPress(listener) ?? (() => {});
+}
+
+/** Arms the live press-depth stream. Call while the HITS card with the meter is shown. */
+export function startAnalogPressStream(): void {
+  void logitechClient()?.startAnalogPressStream();
+}
+
+/** Disarms the stream. Call when the card showing the meter goes away. */
+export function stopAnalogPressStream(): void {
+  void logitechClient()?.stopAnalogPressStream();
+}
+
 export function setAnalogTuningMode(mode: "independent" | "both"): void {
   analogTuning = { ...analogTuning, mode };
   emit();
@@ -2982,16 +3015,44 @@ export function setAnalogTuningMode(mode: "independent" | "both"): void {
 export function setAnalogTuningValue(
   group: "left" | "right" | "both",
   setting: keyof AnalogTuning,
-  value: number,
+  value: number | boolean,
 ): void {
   analogTuning = { ...analogTuning, [group]: { ...analogTuning[group], [setting]: value } };
   emit();
 }
 
+/**
+ * Both buttons' HITS changes share one writer, so a Both-buttons apply is one
+ * profile write instead of two: the runner calls only the last change of a group.
+ */
+const ANALOG_BUTTON_GROUP = "logitech-analog-buttons";
+/** The values waiting to be written, by button. */
+const stagedAnalogButtons = new Map<0 | 1, AnalogTuning>();
+
+async function writeStagedAnalogButtons(): Promise<void> {
+  const client = logitechClient();
+  if (!client) throw new Error(st("ctl.gone"));
+  const staged = ([0, 1] as const).flatMap((button) => {
+    const tuning = stagedAnalogButtons.get(button);
+    return tuning && isPendingChange(`analog-button-${button}`) ? [{ button, ...tuning }] : [];
+  });
+  // Live first, so it takes effect at once.
+  for (const entry of staged) await client.setAnalogButtonTuning(entry.button, entry);
+  // Then the profile, which is what the mouse loads at power-on. Live values
+  // alone are gone after a power cycle. Host mode and profiles that cannot be
+  // written keep the live-only behavior.
+  if (lastDeviceMode === "Onboard" && lastProfileFormat?.writable === true) {
+    await client.persistAnalogButtonTuning(staged);
+  }
+  stagedAnalogButtons.clear();
+}
+
 function stageAnalogButton(button: 0 | 1, tuning: AnalogTuning): void {
   const side = button === 0 ? "left" : "right";
+  stagedAnalogButtons.set(button, { ...tuning });
   stageChange({
     key: `analog-button-${button}`,
+    group: ANALOG_BUTTON_GROUP,
     label: `${side === "left" ? "Left" : "Right"} HITS tuning`,
     command: `Set ${side} hall-effect button tuning`,
     progress: `Setting ${side} hall-effect button tuning…`,
@@ -2999,11 +3060,7 @@ function stageAnalogButton(button: 0 | 1, tuning: AnalogTuning): void {
       const buttons = status.analogButtonTuning?.buttons;
       if (buttons?.[button]) buttons[button] = { ...tuning };
     },
-    apply: async () => {
-      const client = logitechClient();
-      if (!client) throw new Error(st("ctl.gone"));
-      await client.setAnalogButtonTuning(button, tuning);
-    },
+    apply: writeStagedAnalogButtons,
   });
 }
 
@@ -3872,7 +3929,7 @@ export { BUNNY_HOP_LIMITS };
 
 export function profileReportRateOptions(link: "wireless" | "wired"): number[] {
   const format = lastProfileFormat;
-  const rates = format ? capabilitiesForFormat(format.id).reportRates : null;
+  const rates = format ? reportRateCapabilitiesFor(format.id, latestDeviceStatus?.transportIds?.USB) : null;
   const activeLink = latestDeviceStatus?.connectionType === "Wireless" ? "wireless" : "wired";
   return reportRatesForDevice(
     rates,
@@ -4035,7 +4092,7 @@ export function applyLightforceSwitchMode(mode: NonNullable<MouseStatus["lightfo
 }
 
 export function toggleDongleLed(): void {
-  if (!pulsarClient()) return;
+  if (!hasActiveClient()) return;
   const enabled = withPendingChanges(latestDeviceStatus!).dongleLedEnabled !== true;
   stageChange({
     key: "dongle-led",
@@ -4046,7 +4103,7 @@ export function toggleDongleLed(): void {
       status.dongleLedEnabled = enabled;
     },
     apply: async () => {
-      const client = pulsarClient();
+      const client = activeSettingsClient();
       if (!client) throw new Error(st("ctl.receiverGone"));
       if (!("setDongleLed" in client)) {
         throw new Error(st("ctl.noLedControl"));
@@ -4099,10 +4156,12 @@ export function applyPulsarToggle(setting: PulsarToggleSetting, enabled: boolean
 export function applyPulsarValue(setting: "debounce" | "sleep", value: number): void {
   const client = setting === "sleep"
     ? activeSettingsClient()
-    : pulsarClient() ?? dmClient() ?? orbitalClient() ?? razerClient()
-      ?? viperClient() ?? teevolutionClient() ?? vgnClient() ?? keychronNapeClient() ?? keychronM6Client() ?? wallhackMouseClient()
-      ?? incottClient();
-  if (!client || (setting === "sleep" && !("setSleepTimeout" in client))) return;
+    : (activeSettingsClient() && "setDebounceTime" in (activeSettingsClient() ?? {}))
+      ? activeSettingsClient()
+      : pulsarClient() ?? dmClient() ?? orbitalClient() ?? razerClient()
+        ?? viperClient() ?? teevolutionClient() ?? vgnClient() ?? keychronNapeClient() ?? keychronM6Client() ?? keychron4kClient() ?? wallhackMouseClient()
+        ?? incottClient() ?? wlmouse4kClient();
+  if (!client || (setting === "sleep" && !("setSleepTimeout" in client)) || (setting === "debounce" && !("setDebounceTime" in client))) return;
   const asleep = value !== WLMOUSE_SLEEP_NEVER;
   stageChange({
     key: setting,
@@ -4529,6 +4588,18 @@ export function applyEggPollingDivider(divider: number): void {
   });
 }
 
+export function applyEggGlassMode(enabled: boolean): void {
+  stageEggChange({
+    key: "egg-glass-mode",
+    label: `Glass mode ${enabled ? "on" : "off"}`,
+    what: "glass mode",
+    preview: (status) => {
+      status.eggGlassMode = enabled;
+    },
+    change: async (client) => client.setGlassMode(enabled),
+  });
+}
+
 export function applyEggMulticlick(button: EggButtonIndex, value: number): void {
   stageEggChange({
     key: `egg-multiclick-${button}`,
@@ -4872,8 +4943,8 @@ function showSuperstrikePreview(): void {
       maxRapidTrigger: 5,
       maxHaptics: 5,
       buttons: [
-        { actuation: 3, rapidTrigger: 2, haptics: 3 },
-        { actuation: 3, rapidTrigger: 2, haptics: 3 },
+        { actuation: 3, rapidTrigger: 2, haptics: 3, rapidTriggerEnabled: true },
+        { actuation: 3, rapidTrigger: 2, haptics: 3, rapidTriggerEnabled: true },
       ],
     },
     pollingRateHz: 4000,
