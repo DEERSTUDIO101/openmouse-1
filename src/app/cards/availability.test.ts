@@ -403,6 +403,43 @@ test("M2-NEX keeps lighting out of Advanced", () => {
   assert.equal(has.lightingAdvanced, false);
 });
 
+test("NOIR S1 exposes its standard controls and hides unsupported extras", () => {
+  const has = cardAvailability(snapshot({
+    status: {
+      // The published 0.22 K-snake client identifies this model by name but
+      // still reports its protocol family as the brand.
+      brand: "K-snake",
+      name: "NOIR S1",
+      ui: {
+        family: "ksnake",
+        showAdvancedSection: true,
+        hideSleepCard: true,
+      },
+      buttonMappings: {
+        Left: "Left click",
+        Right: "Right click",
+        Middle: "Middle click",
+        Forward: "Forward",
+        Backward: "Backward",
+        DPI: "DPI loop",
+      },
+      buttonOptions: ["Left click", "Right click", "Scroll up", "DPI loop"],
+      dpiStages: [800, 1200, 1600, 3200, 5000, 12000],
+      scrollDirection: "Reverse",
+      lighting: {} as never,
+    },
+  }));
+  assert.equal(has.dpi, true);
+  assert.equal(has.polling, true);
+  assert.equal(has.buttonMapping, true);
+  assert.equal(has.ksnakeScroll, true);
+  assert.equal(has.ksnakeMacros, true);
+  assert.equal(has.lighting, true);
+  assert.equal(has.lightingAdvanced, false);
+  assert.equal(has.sleep, false);
+  assert.equal(has.sensor, true, "surface capability is independent of lift-off control visibility");
+});
+
 test("the generic button card follows the driver\'s mappings, not the advanced section", () => {
   const has = cardAvailability(snapshot({
     status: {

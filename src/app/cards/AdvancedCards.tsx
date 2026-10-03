@@ -21,6 +21,7 @@ import {
 import { teevolutionSensorModeUi } from "@openmouse/protocol/teevolution";
 import type { KsnakeMacroProfile, KsnakeMacroStep } from "@openmouse/protocol/ksnake";
 import { isPulsarProProtocol } from "../../device/traits";
+import { isNoirKsnakeStatus } from "../../device/noir.ts";
 import * as control from "../../device/controller";
 import { PULSAR_SLEEP_OPTIONS } from "../../device/controller";
 import { selectableValues, sleepLabel, sleepParts, sleepTotalSeconds, valuesWithCurrent, KEYCHRON_SLEEP_MAX_HOURS, KEYCHRON_SLEEP_MAX_SECONDS, KEYCHRON_SLEEP_MIN_SECONDS } from "../../device/options";
@@ -1541,8 +1542,8 @@ function cloneKsnakeMacroProfile(profile: KsnakeMacroProfile | undefined): Ksnak
 export function KsnakeMacroCard({ snapshot }: { snapshot: ControlSnapshot }): ReactNode {
   const status = snapshot.status;
   const locale = snapshot.preferences.locale;
-  const isM2Nex = status?.brand === "Noir Gear" && status.name === "M2-NEX";
-  const macroCapable = status?.ui?.family === "ksnake" || isM2Nex;
+  const isNoirKsnake = isNoirKsnakeStatus(status);
+  const macroCapable = status?.ui?.family === "ksnake" || isNoirKsnake;
   // Keep the card usable while an older hot-reloaded controller snapshot is
   // still missing the newly added field. Treat that state as "not loaded" so
   // the local editor is prepared instead of silently hiding the card.
@@ -1556,6 +1557,7 @@ export function KsnakeMacroCard({ snapshot }: { snapshot: ControlSnapshot }): Re
   const recordedStepsRef = useRef<KsnakeMacroStep[]>([]);
   const recordingOriginalStepsRef = useRef<KsnakeMacroStep[] | null>(null);
   const recordingClockRef = useRef<number | null>(null);
+  const recorderFocusRef = useRef<HTMLElement | null>(null);
   const staged = snapshot.pending.keys.includes("ksnake-macros");
   const disabled = snapshot.settingInProgress || snapshot.pending.busy;
   const controlsDisabled = disabled || isRecording;
@@ -1640,6 +1642,12 @@ export function KsnakeMacroCard({ snapshot }: { snapshot: ControlSnapshot }): Re
 
   useEffect(() => {
     if (!isRecording) return undefined;
+
+    // The Record button keeps focus after it is clicked. Keyboard events then
+    // target that button, and the recorder-control guard (correctly) ignores
+    // them as UI input. Move focus to a neutral capture surface so the first
+    // physical key pressed after starting a recording is captured.
+    recorderFocusRef.current?.focus();
 
     const isRecorderControl = (target: EventTarget | null): boolean => (
       target instanceof Element && Boolean(target.closest("[data-macro-recorder-control]"))
@@ -1756,7 +1764,7 @@ export function KsnakeMacroCard({ snapshot }: { snapshot: ControlSnapshot }): Re
         </div>
       </div>
       <p className="ksnake-macro-notice">
-        {isM2Nex ? t(locale, "macro.noticeM2nex") : t(locale, "macro.notice")}
+        {isNoirKsnake ? t(locale, "macro.noticeWriteOnly") : t(locale, "macro.notice")}
       </p>
       <label className="ksnake-macro-slot-picker">
         <span>{t(locale, "macro.slotLabel")}</span>
@@ -1769,7 +1777,13 @@ export function KsnakeMacroCard({ snapshot }: { snapshot: ControlSnapshot }): Re
           })}
         </select>
       </label>
-      <section className={`ksnake-macro-recorder${isRecording ? " is-recording" : ""}`} aria-live="polite">
+      <section
+        ref={recorderFocusRef}
+        className={`ksnake-macro-recorder${isRecording ? " is-recording" : ""}`}
+        aria-live="polite"
+        aria-label="Macro input capture"
+        tabIndex={-1}
+      >
         <div className="ksnake-macro-recorder-status">
           <span className="ksnake-macro-recorder-dot" aria-hidden="true" />
           <div>
@@ -1940,13 +1954,15 @@ export function ButtonMappingCard({ snapshot }: { snapshot: ControlSnapshot }): 
   if (!status?.buttonMappings || !status.buttonOptions?.length) return null;
   const locale = snapshot.preferences.locale;
   const options = status.buttonOptions;
-  const isM2Nex = status.brand === "Noir Gear"
-    && status.name === "M2-NEX"
+  const isNoirProfile = isNoirKsnakeStatus(status)
     && snapshot.m2nexProfiles !== null;
-  const selectedM2NexProfile = isM2Nex
+  const selectedM2NexProfile = isNoirProfile
     ? snapshot.m2nexProfiles?.[snapshot.activeM2NexProfile]
     : null;
+  const canResetKsnake = isNoirProfile;
   const mappings = selectedM2NexProfile?.buttonMappings ?? status.buttonMappings;
+  const pendingButtons = new Set(snapshot.pending.keys);
+  const resettingButtons = pendingButtons.has("ksnake-button-reset");
   // fixedButtons lands with mouse-protocol#68; read defensively so this
   // builds against the published protocol until then.
   const fixed = new Set((status as unknown as { fixedButtons?: readonly string[] }).fixedButtons ?? []);
@@ -1955,9 +1971,11 @@ export function ButtonMappingCard({ snapshot }: { snapshot: ControlSnapshot }): 
       <div className="setting-heading compact"><div><p>BUTTONS</p><h2>{t(locale, "map.remap")}</h2></div></div>
       <div className="button-map-list">
         {Object.entries(status.buttonMappings).map(([button, deviceAssigned], index) => {
-          const assigned = mappings[button] ?? deviceAssigned;
+          const assigned = resettingButtons || pendingButtons.has(`button-${button}`)
+            ? status.buttonMappings?.[button] ?? mappings[button] ?? deviceAssigned
+            : mappings[button] ?? deviceAssigned;
           const selectId = `button-${button.toLowerCase()}-select`;
-          const isFixed = fixed.has(button) || (isM2Nex && button === "Left");
+          const isFixed = fixed.has(button) || (isNoirKsnakeStatus(status) && button === "Left");
           return (
             <label key={button} className={`button-map-row${isFixed ? " is-fixed" : ""}`} htmlFor={selectId}>
               <span className="button-map-control">
@@ -1989,6 +2007,18 @@ export function ButtonMappingCard({ snapshot }: { snapshot: ControlSnapshot }): 
           );
         })}
       </div>
+      {canResetKsnake ? (
+        <div className="button-map-footer">
+          <button
+            type="button"
+            className="button-map-reset"
+            disabled={snapshot.settingInProgress || snapshot.pending.busy}
+            onClick={control.resetKsnakeButtonMappings}
+          >
+            Reset to default
+          </button>
+        </div>
+      ) : null}
       {!selectedM2NexProfile ? (
         <p className="field-note">{t(locale, "map.defaultNote")}</p>
       ) : null}

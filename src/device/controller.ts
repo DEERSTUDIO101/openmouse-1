@@ -106,9 +106,13 @@ import type { KsnakeMacroProfile } from "@openmouse/protocol/ksnake";
 import {
   cloneM2NexProfile,
   loadM2NexProfiles,
+  parseM2NexProfileImport,
   saveM2NexProfiles,
+  NOIR_S1_PROFILE_COUNT,
+  NOIR_S1_PROFILE_STORAGE_KEY,
   type M2NexProfile,
 } from "./m2nex-profiles";
+import { isNoirKsnakeStatus as isNoirKsnakeIdentity, isNoirS1Status as isNoirS1Identity } from "./noir.ts";
 import {
   LOGITECH_HAPTIC_EFFECTS,
   LOGITECH_HAPTIC_PRESETS,
@@ -285,6 +289,15 @@ const pulsarClient = (): PulsarClient | null =>
 let onboardProfiles: OnboardProfile[] | null = null;
 let buttons: LogitechReprogrammableControl[] | null = null;
 const KSNAKE_MACROS_KEY = "ksnake-macros";
+const KSNAKE_DEFAULT_BUTTON_MAPPINGS: Readonly<Record<string, string>> = {
+  Left: "Left click",
+  Right: "Right click",
+  Middle: "Middle click",
+  Forward: "Forward",
+  Backward: "Backward",
+  "Scroll up": "Scroll up",
+  "Scroll down": "Scroll down",
+};
 let ksnakeMacros: KsnakeMacroProfile[] | null = null;
 let stagedKsnakeMacros: KsnakeMacroProfile[] | null = null;
 let ksnakeMacrosLoading = false;
@@ -668,6 +681,7 @@ type M2NexProfileClient = KsnakeMacroClient & {
   setDpiStageValue(stage: number, dpi: number): Promise<unknown>;
   setActiveDpiStage(stage: number): Promise<unknown>;
   setPollingRate(rate: number): Promise<unknown>;
+  setScrollDirection(direction: NonNullable<MouseStatus["scrollDirection"]>): Promise<unknown>;
 };
 
 function ksnakeMacroClient(): KsnakeMacroClient | null {
@@ -678,11 +692,32 @@ function ksnakeMacroClient(): KsnakeMacroClient | null {
 }
 
 function isM2NexStatus(status: MouseStatus | null | undefined = latestDeviceStatus): boolean {
-  return status?.brand === "Noir Gear" && status.name === "M2-NEX";
+  return isNoirKsnakeIdentity(status);
+}
+
+function isNoirS1Status(status: MouseStatus | null | undefined = latestDeviceStatus): boolean {
+  return isNoirS1Identity(status);
+}
+
+function noirProfileStoreOptions(status: MouseStatus | null | undefined = latestDeviceStatus): {
+  count?: number;
+  storageKey?: string;
+} | undefined {
+  return isNoirS1Status(status)
+    ? { count: NOIR_S1_PROFILE_COUNT, storageKey: NOIR_S1_PROFILE_STORAGE_KEY }
+    : undefined;
 }
 
 function persistM2NexProfiles(): void {
-  if (m2nexProfiles !== null) saveM2NexProfiles(localStorage, m2nexProfiles);
+  if (m2nexProfiles !== null) saveM2NexProfiles(localStorage, m2nexProfiles, noirProfileStoreOptions());
+}
+
+function syncActiveM2NexProfileButtonDefaults(): void {
+  if (!isM2NexStatus() || !m2nexProfiles?.[activeM2NexProfile]) return;
+  m2nexProfiles = m2nexProfiles.map((profile, index) => index === activeM2NexProfile
+    ? { ...profile, buttonMappings: { ...profile.buttonMappings, ...KSNAKE_DEFAULT_BUTTON_MAPPINGS } }
+    : profile);
+  persistM2NexProfiles();
 }
 
 function profileMacroTable(): KsnakeMacroProfile[] | null {
@@ -704,8 +739,9 @@ function seedM2NexProfiles(status: MouseStatus): void {
     activeDpiStage: status.activeDpiStage,
     pollingRateHz: status.pollingRateHz,
     buttonMappings: status.buttonMappings,
+    scrollDirection: status.scrollDirection,
     macros: null,
-  });
+  }, noirProfileStoreOptions(status));
   activeM2NexProfile = Math.min(activeM2NexProfile, m2nexProfiles.length - 1);
   m2nexProfileDirty = false;
 }
@@ -717,6 +753,14 @@ function setEditorToM2NexProfile(): void {
   stagedKsnakeMacros = null;
   ksnakeMacrosLoading = false;
   ksnakeMacrosError = null;
+}
+
+function syncActiveM2NexProfileButton(button: string, action: string): void {
+  if (!isM2NexStatus() || !m2nexProfiles?.[activeM2NexProfile]) return;
+  m2nexProfiles = m2nexProfiles.map((profile, index) => index === activeM2NexProfile
+    ? { ...profile, buttonMappings: { ...profile.buttonMappings, [button]: action } }
+    : profile);
+  persistM2NexProfiles();
 }
 
 function cloneKsnakeMacros(profiles: readonly KsnakeMacroProfile[]): KsnakeMacroProfile[] {
@@ -763,6 +807,61 @@ export function selectM2NexProfile(index: number): void {
   emit();
 }
 
+/** Create a named local slot without changing the hardware. The vendor S1
+ * utility calls this action Create; the selected slot is the new draft. */
+export function createM2NexProfile(): void {
+  if (!isM2NexStatus() || !m2nexProfiles?.[activeM2NexProfile]) return;
+  const current = m2nexProfiles[activeM2NexProfile];
+  const suggested = `Profile ${activeM2NexProfile + 1}`;
+  const name = window.prompt("Profile name", suggested)?.trim();
+  if (!name) return;
+  m2nexProfiles = m2nexProfiles.map((profile, index) => index === activeM2NexProfile
+    ? { ...cloneM2NexProfile(current), name }
+    : profile);
+  m2nexProfileDirty = true;
+  persistM2NexProfiles();
+  setReadStatus(`${name} created locally. Apply it when you are ready.`);
+  emit();
+}
+
+/** Import the official-style `{ deviceModel, profileData }` JSON envelope. */
+export function importM2NexProfiles(text: string): void {
+  if (!isM2NexStatus() || !m2nexProfiles) return;
+  let raw: unknown;
+  try {
+    raw = JSON.parse(text);
+  } catch {
+    setReadStatus("This profile file is not valid JSON.");
+    emit();
+    return;
+  }
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+    setReadStatus("This profile file has an unsupported format.");
+    emit();
+    return;
+  }
+  const payload = raw as { deviceModel?: unknown };
+  if (typeof payload.deviceModel === "string" && payload.deviceModel !== latestDeviceStatus?.name) {
+    setReadStatus(`This profile belongs to ${payload.deviceModel}, not ${latestDeviceStatus?.name ?? "this mouse"}.`);
+    emit();
+    return;
+  }
+  const profiles = parseM2NexProfileImport(raw, m2nexProfiles.length);
+  if (!profiles) {
+    setReadStatus(`Import requires exactly ${m2nexProfiles.length} valid profile slots.`);
+    emit();
+    return;
+  }
+  m2nexProfiles = profiles;
+  activeM2NexProfile = 0;
+  m2nexProfileDirty = false;
+  setEditorToM2NexProfile();
+  persistM2NexProfiles();
+  setReadStatus(`${latestDeviceStatus?.name ?? "Mouse"} profiles imported.`);
+  pushToast("success", "Profiles imported", `${profiles.length} local profiles are ready to apply.`);
+  emit();
+}
+
 /** Edit the selected profile without touching the mouse yet. */
 export function updateM2NexProfileButton(button: string, action: string): void {
   if (!isM2NexStatus() || !m2nexProfiles?.[activeM2NexProfile]) return;
@@ -790,6 +889,7 @@ export function saveCurrentM2NexProfile(): void {
         activeDpiStage: status.activeDpiStage ?? 0,
         pollingRateHz: status.pollingRateHz,
         buttonMappings: { ...(status.buttonMappings ?? {}) },
+        scrollDirection: status.scrollDirection ?? profile.scrollDirection,
         macros: macros ?? profile.macros,
       }
     : profile);
@@ -816,7 +916,8 @@ export async function applyM2NexProfile(index = activeM2NexProfile): Promise<voi
     || typeof rawClient.setButtonMapping !== "function"
     || typeof rawClient.setDpiStageValue !== "function"
     || typeof rawClient.setActiveDpiStage !== "function"
-    || typeof rawClient.setPollingRate !== "function") {
+    || typeof rawClient.setPollingRate !== "function"
+    || typeof rawClient.setScrollDirection !== "function") {
     setReadStatus(st("m2nex.incomplete"));
     return;
   }
@@ -865,6 +966,12 @@ export async function applyM2NexProfile(index = activeM2NexProfile): Promise<voi
       readStatus = pendingStatusText;
       emit();
       await rawClient.setPollingRate(profile.pollingRateHz);
+    }
+    if (profile.scrollDirection && before.scrollDirection !== profile.scrollDirection) {
+      pendingStatusText = `Applying ${profile.name}: scroll direction…`;
+      readStatus = pendingStatusText;
+      emit();
+      await rawClient.setScrollDirection(profile.scrollDirection);
     }
 
     const status = await statusAfterWrite(active as SupportedClient);
@@ -972,7 +1079,9 @@ function stageChange(change: PendingChange): void {
     }
     for (const field of fields) gameProfileDraft.touched.add(field);
   }
-  if (matchesDeviceStatus(change)) {
+  // Reset repairs the profile cache too, so it must run even when the current
+  // hardware snapshot already appears to match the factory mapping.
+  if (change.key !== "ksnake-button-reset" && matchesDeviceStatus(change)) {
     dropPendingChange(change.key);
     setReadStatus(st("ctl.alreadyMatches", { label: change.label }));
     return;
@@ -2887,16 +2996,16 @@ export function applyDpiStageCount(count: number): void {
     progress: `Setting ${count} DPI stages…`,
     preview: (status) => {
       const current = status.dpiStages?.slice() ?? [];
-      if (count <= current.length) status.dpiStages = current.slice(0, count);
-      else {
-        const padded = current.slice();
-        while (padded.length < count) padded.push(padded.at(-1) ?? status.dpi);
-        status.dpiStages = padded;
-      }
+      status.dpiStages = count <= current.length
+        ? current.slice(0, count)
+        : [...current, ...Array.from({ length: count - current.length }, () => current.at(-1) ?? status.dpi)];
       if (status.dpiStageColors) {
-        const colors = status.dpiStageColors.slice(0, count);
-        while (colors.length < count) colors.push(colors.at(-1) ?? "#000000");
-        status.dpiStageColors = colors;
+        status.dpiStageColors = count <= status.dpiStageColors.length
+          ? status.dpiStageColors.slice(0, count)
+          : [...status.dpiStageColors, ...Array.from(
+            { length: count - status.dpiStageColors.length },
+            () => status.dpiStageColors?.at(-1) ?? "#000000",
+          )];
       }
       if ((status.activeDpiStage ?? 0) >= count) {
         status.activeDpiStage = count - 1;
@@ -4681,6 +4790,46 @@ export function applyDeviceButtonMapping(button: string, action: string): void {
         setButtonMapping(button: string, action: string): Promise<unknown>;
       };
       await client.setButtonMapping(button, action);
+      // S1's firmware acknowledges SET_KEYS but returns an all-0xff map on
+      // the next GET_KEYS. Keep the selected local profile in sync with the
+      // confirmed write so the profile overlay does not put the old value
+      // back into the editor after the status refresh.
+      syncActiveM2NexProfileButton(button, action);
+    },
+  });
+}
+
+/** Restore the verified K-snake/Noir button table. This is intentionally
+ * separate from the unverified full factory-reset command in the vendor UI. */
+export function resetKsnakeButtonMappings(): void {
+  if (!isM2NexStatus()) return;
+  const client = active as unknown as Partial<{
+    resetButtonMappings(): Promise<unknown>;
+  }> | null;
+  if (typeof client?.resetButtonMappings !== "function") {
+    setReadStatus("Button defaults are not available on this firmware.");
+    emit();
+    return;
+  }
+  stageChange({
+    key: "ksnake-button-reset",
+    label: "Default button map",
+    command: "Restore default button mapping",
+    progress: "Restoring default button mapping…",
+    preview: (status) => {
+      if (!status.buttonMappings) return;
+      status.buttonMappings = Object.fromEntries(
+        Object.keys(status.buttonMappings).map((button) => [
+          button,
+          KSNAKE_DEFAULT_BUTTON_MAPPINGS[button] ?? status.buttonMappings?.[button] ?? "Unknown",
+        ]),
+      );
+    },
+    apply: async () => {
+      await client.resetButtonMappings!();
+      // Firmware write acknowledgement is usable, but its map read-back is
+      // not trustworthy; keep the selected local profile aligned with reset.
+      syncActiveM2NexProfileButtonDefaults();
     },
   });
 }

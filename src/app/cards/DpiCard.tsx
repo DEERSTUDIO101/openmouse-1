@@ -6,6 +6,7 @@ import {
 } from "@openmouse/protocol/drivers/logitech/onboard-profiles";
 import * as control from "../../device/controller";
 import type { ControlSnapshot, LiftOffLevel } from "../../device/types";
+import { isNoirKsnakeStatus, isNoirS1Status, NOIR_DPI_STAGE_COLORS } from "../../device/noir.ts";
 import { closestDpiOption, dpiPresetValues } from "../../dpi-presets";
 import { t, tp } from "../../i18n";
 import { LiftOffDistance, hasLiftOff } from "./PerformanceCards";
@@ -48,7 +49,11 @@ function DpiStageEditor({
 
   const naturalMode: "logitech" | "stage" | "generic" = isLogitech ? "logitech" : isStage ? "stage" : "generic";
   const mode: "logitech" | "stage" | "generic" = editorView === "single" ? "generic" : naturalMode;
-  const showM2NexStageColors = mode === "stage" && status?.brand === "Noir Gear" && status.name === "M2-NEX";
+  const stageColors = mode === "stage"
+    ? status?.dpiStageColors ?? (isNoirKsnakeStatus(status) ? NOIR_DPI_STAGE_COLORS : null)
+    : null;
+  const showStageColors = mode === "stage"
+    && (stageColors?.length ?? 0) >= (status?.dpiStages?.length ?? 0);
   const limits = snapshot.profile.slotLimits;
   // The single-DPI (generic) view writes the live DPI, not the profile, so it
   // must not be gated behind the profile's slot-write lock.
@@ -152,7 +157,8 @@ function DpiStageEditor({
     if (mode === "stage") {
       const enabled = next.filter((row) => row.enabled);
       const current = status?.dpiStages ?? [];
-      if (stageEditor?.countEditable === true && enabled.length !== current.length) {
+      const currentCount = current.length;
+      if (stageEditor?.countEditable === true && enabled.length !== currentCount) {
         control.applyDpiStageCount(enabled.length);
       }
       enabled.forEach((row, position) => {
@@ -181,7 +187,7 @@ function DpiStageEditor({
   };
 
   const setEnabled = (index: number, enabled: boolean): void => {
-    const next = rows.map((row, i) => (i === index ? { ...row, enabled: !row.enabled } : row));
+    let next = rows.map((row, i) => (i === index ? { ...row, enabled: !row.enabled } : row));
     if (mode === "generic") {
       if (!enabled || next[index].enabled === rows[index].enabled) return;
       const snap = closestDpiOption(options, parseRow(next[index].value) ?? status?.dpi ?? 0);
@@ -192,6 +198,16 @@ function DpiStageEditor({
       control.applyDpiValue(snap);
       touchedRef.current = Date.now();
       return;
+    }
+    // K-snake stores a stage count, not an arbitrary bitmask. Keep the local
+    // editor contiguous so disabling stage 3 cannot silently move stage 6's
+    // value into stage 5 on the next write.
+    if (mode === "stage" && stageEditor?.countEditable === true) {
+      const currentCount = rows.filter((row) => row.enabled).length;
+      const nextCount = next[index]?.enabled
+        ? Math.max(currentCount, index + 1)
+        : Math.max(1, Math.min(currentCount, index));
+      next = next.map((row, i) => ({ ...row, enabled: i < nextCount }));
     }
     const count = next.filter((row) => row.enabled).length;
     if (count < 1 || count > countCap) return;
@@ -269,7 +285,7 @@ function DpiStageEditor({
   const enabledCount = rows.filter((row) => row.enabled).length;
 
   return (
-    <div id="dpi-stage-editor" className={`dpi-editor mode-${mode}${showM2NexStageColors ? " has-m2nex-stage-colors" : ""}`}>
+    <div id="dpi-stage-editor" className={`dpi-editor mode-${mode}${showStageColors ? " has-m2nex-stage-colors" : ""}`}>
       <div className="dpi-editor-bar">
         <span className="dpi-editor-bar-label">
           {t(locale, mode === "logitech" ? "dpi.slotsInUse" : mode === "stage" ? "dpi.stagesInUse" : "dpi.presetsInUse")}
@@ -285,11 +301,13 @@ function DpiStageEditor({
             ? compactIndex(index) === snapshot.dpiSlotPlan.defaultIndex
             : false;
           const highlighted = mode === "generic" ? row.enabled : mode === "stage" ? isActive === true : isStarting;
-          const stageColorClass = showM2NexStageColors ? ` m2nex-stage-${index + 1}` : "";
+          const stageColorClass = showStageColors ? ` m2nex-stage-${index + 1}` : "";
+          const stageColor = showStageColors ? stageColors?.[index] : undefined;
           return (
             <div
               key={index}
               className={`dpi-editor-row${row.enabled ? "" : " is-off"}${highlighted ? " is-active" : ""}${stageColorClass}`}
+              style={stageColor ? { "--dpi-stage-color": stageColor } as CSSProperties : undefined}
             >
               <label className="dpi-editor-check">
                 <input
@@ -310,7 +328,7 @@ function DpiStageEditor({
                 aria-pressed={highlighted}
                 onClick={() => setActive(index)}
               >
-                {showM2NexStageColors ? <span className="dpi-editor-stage-swatch" aria-hidden="true" /> : null}
+                {showStageColors ? <span className="dpi-editor-stage-swatch" aria-hidden="true" /> : null}
                 <span>{index + 1}</span>
               </button>
               <input
@@ -453,6 +471,7 @@ export function DpiCard({ snapshot }: { snapshot: ControlSnapshot }): ReactNode 
     || (Boolean(status?.ui?.dpiStageEditor)
       && Array.isArray(status?.dpiStages)
       && (status?.dpiStages?.length ?? 0) > 0);
+  const singleDpiAvailable = !isNoirS1Status(status);
 
   const label = (source: typeof status): string => `${source.dpi.toLocaleString()} DPI`;
 
@@ -473,7 +492,7 @@ export function DpiCard({ snapshot }: { snapshot: ControlSnapshot }): ReactNode 
                 ) : null}
               </h2>
             </div>
-            {stageCapable ? (
+            {stageCapable && singleDpiAvailable ? (
               <div
                 className="dpi-view-toggle"
                 role="group"
@@ -535,7 +554,7 @@ export function DpiCard({ snapshot }: { snapshot: ControlSnapshot }): ReactNode 
 
         <DpiStageEditor
           snapshot={snapshot}
-          editorView={stageCapable ? editorView : undefined}
+          editorView={stageCapable && singleDpiAvailable ? editorView : stageCapable ? "stage" : undefined}
         />
 
         <div className="setting-action">
