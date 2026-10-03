@@ -762,7 +762,7 @@ const en = {
   "ctl.progProfile": "Switching profile…",
   "ctl.switchingLayer": "Switching to {label}…",
   "ctl.readingProfiles": "Reading onboard profiles…",
-  "ctl.noProfiles": "This mouse reported no onboard profiles.",
+  "ctl.noProfiles": "No onboard profiles are saved on this mouse yet. Logitech mice only get them after G HUB has linked the mouse once: open G HUB, let it detect the mouse, then reload here.",
   "ctl.noNameField": "This profile format has no name field.",
   "ctl.selectedMouse": "the selected mouse",
   "ctl.autoSleep": "Auto sleep {v}",
