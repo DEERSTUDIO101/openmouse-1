@@ -91,6 +91,7 @@ export const SUPPORTED_DEVICES: readonly SupportedDeviceEntry[] = [
   { brand: "Redragon", model: "M696 Pro", status: "driver" },
   { brand: "Redragon", model: "M721 Pro", status: "driver" },
   { brand: "Redragon", model: "M724 K1NG 1K", status: "supported", pids: [0xfc7a] },
+  { brand: "Redragon", model: "M690 PRO", status: "supported", pids: [0x2e, 0x2f] },
   { brand: "Ryunix", model: "KYU Pro MX1", status: "supported", pids: [0x26e, 0x26f] },
   { brand: "Delux", model: "M800 Mini", status: "supported", pids: [0xfa60, 0xfa55] },
   { brand: "Dareu", model: "A950 PRO Mg", status: "supported", pids: [0x1114, 0x1117] },
