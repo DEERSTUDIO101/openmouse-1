@@ -3,6 +3,21 @@ import type { I18nKey } from "./i18n.ts";
 /** Korean strings, split into a lazy chunk so the initial bundle ships
     English only. Loaded via ensureLocale() before first use. */
 export const ko: Record<I18nKey, string> = {
+  "luna.angleSnap": "직선 보정",
+  "luna.competitiveMode": "경쟁 모드",
+  "luna.trackingMode": "추적 모드",
+  "luna.motionSync": "모션 싱크",
+  "luna.rippleControl": "리플 제어",
+  "luna.buttons": "버튼 응답",
+  "luna.lightning": "라이트닝 트리거",
+  "luna.leftPriority": "왼쪽 우선",
+  "luna.rightPriority": "오른쪽 우선",
+  "luna.leftDebounce": "왼쪽 버튼 지연",
+  "luna.rightDebounce": "오른쪽 버튼 지연",
+  "luna.middleDebounce": "가운데 버튼 디바운스",
+  "luna.wheelGuard": "휠 오작동 방지",
+  "luna.wheelGuardWindow": "휠 보호 시간",
+  "luna.sensorAngle": "센서 각도",
   "nav.language": "언어",
   "nav.settings": "설정",
   "nav.support": "후원",

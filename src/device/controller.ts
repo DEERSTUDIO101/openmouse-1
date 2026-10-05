@@ -12,6 +12,8 @@ import {
   type SupportedClient,
 } from "../device-clients";
 import { closestDpiOption } from "../dpi-presets";
+import { lunafurySettingLabel, lunafurySettingPriority } from "./lunafury-labels.ts";
+import { lunaFuryLightningPriority, stageLunaFuryProfile } from "./lunafury-profile.ts";
 import { formatHex, hidTraffic, isMark, markHidActivity, startHidCapture, type HidTrafficEntry } from "../hid-diagnostics";
 import {
   clearPendingChanges,
@@ -28,9 +30,9 @@ import {
   type PendingChange,
 } from "../pending-changes";
 import {
-  changedFields,
-  isGameProfileField,
-  snapshotDiff,
+  draftProfileSnapshot,
+  editableProfileFields,
+  matchingProfileFields,
   type GameProfileSnapshot,
 } from "./game-profile-snapshot";
 import { deviceImage } from "../ui/device-images";
@@ -1149,8 +1151,7 @@ function gameProfileFieldsOf(change: PendingChange): string[] | null {
   const base = withPendingChanges(latestDeviceStatus);
   const preview = structuredClone(base);
   change.preview(preview);
-  const fields = changedFields(base, preview);
-  return fields.every(isGameProfileField) ? fields : null;
+  return editableProfileFields(base, preview);
 }
 
 /**
@@ -1176,24 +1177,14 @@ function openGameProfileDraft(initial: GameProfileSnapshot): void {
   if (!gameProfileDraft || !latestDeviceStatus) return;
   applyGameProfileSnapshot(initial);
   const preview = withPendingChanges(latestDeviceStatus);
-  for (const [field, value] of Object.entries(initial)) {
-    if (isGameProfileField(field) && JSON.stringify(preview[field]) === JSON.stringify(value)) {
-      gameProfileDraft.touched.add(field);
-    }
-  }
+  for (const field of matchingProfileFields(preview, initial)) gameProfileDraft.touched.add(field);
 }
 
 /** The draft as a profile: every field it differs from the mouse on, plus every field it has touched. */
 export function gameProfileDraftSnapshot(): GameProfileSnapshot {
   if (!gameProfileDraft || !latestDeviceStatus) return {};
   const preview = withPendingChanges(latestDeviceStatus);
-  const snapshot: Record<string, unknown> = { ...snapshotDiff(latestDeviceStatus, preview) };
-  for (const field of gameProfileDraft.touched) {
-    if (field in snapshot || !isGameProfileField(field)) continue;
-    const value = preview[field];
-    if (value !== undefined) snapshot[field] = structuredClone(value);
-  }
-  return snapshot as GameProfileSnapshot;
+  return draftProfileSnapshot(latestDeviceStatus, preview, gameProfileDraft.touched);
 }
 
 /** Replaces the draft's staged values with `snapshot` (the Clear/Revert paths). */
@@ -1517,6 +1508,11 @@ export function applyGameProfileSnapshot(snapshot: GameProfileSnapshot): void {
     if (pulsarPro) applyProSetting("angleTuning", s.angleTuning);
     else applyAngleTuning(s.angleTuning);
   }
+  stageLunaFuryProfile(s.lunafury, status.brand === "LunaFury" ? status.lunafury : undefined, {
+    lightning: applyLunaFuryLightningMode,
+    button: applyLunaFuryButtonDebounce,
+    wheel: applyLunaFuryWheelGuard,
+  });
   if (typeof s.wheelAcceleration === "boolean") applyProSetting("wheelAcceleration", s.wheelAcceleration);
 
   if (s.wheelMode) applyWheelMode(s.wheelMode);
@@ -4245,6 +4241,8 @@ export function toggleDongleLed(): void {
 }
 
 function settingLabel(setting: PulsarToggleSetting): string {
+  const vendorLabel = lunafurySettingLabel(latestDeviceStatus, interfacePreferences.locale, setting);
+  if (vendorLabel !== undefined) return vendorLabel;
   return ({
     motionSync: "Motion Sync",
     angleSnapping: "angle snapping",
@@ -4274,6 +4272,7 @@ export function applyPulsarToggle(setting: PulsarToggleSetting, enabled: boolean
   const method = PULSAR_TOGGLE_METHOD[setting];
   stageChange({
     key: setting,
+    priority: lunafurySettingPriority(latestDeviceStatus, setting, enabled),
     label: `${label} ${enabled ? "on" : "off"}`,
     command: `${enabled ? "Enable" : "Disable"} ${label}`,
     progress: `${enabled ? "Enabling" : "Disabling"} ${label}…`,
@@ -4948,6 +4947,49 @@ export function applyIncottFireKey(times: number, intervalMs: number): void {
       };
       await client.setFireKey(times, intervalMs);
     },
+  });
+}
+
+export function applyLunaFuryLightningMode(mode: 0 | 1 | 2): void {
+  if (latestDeviceStatus?.lunafury?.lightningMode == null) return;
+  stageChange({
+    key: "lunafury-lightning",
+    label: `Lightning Trigger ${mode === 0 ? "off" : mode === 1 ? "left priority" : "right priority"}`,
+    command: "Change Lightning Trigger mode",
+    progress: "Changing Lightning Trigger mode…",
+    priority: lunaFuryLightningPriority(mode),
+    preview: (status) => { if (status.lunafury) status.lunafury.lightningMode = mode; },
+    apply: () => callClientMethod("setLunaFuryLightningMode", "Lightning Trigger", mode),
+  });
+}
+
+export function applyLunaFuryButtonDebounce(button: "left" | "right" | "middle", milliseconds: number): void {
+  const field = `${button}DebounceMs` as const;
+  if (latestDeviceStatus?.lunafury?.[field] == null) return;
+  stageChange({
+    key: `lunafury-button-${button}`,
+    label: `${button} button latency ${milliseconds} ms`,
+    command: `Set ${button} button latency`,
+    progress: `Setting ${button} button latency…`,
+    preview: (status) => { if (status.lunafury) status.lunafury[field] = milliseconds; },
+    apply: async () => {
+      const client = requireClientMethod("setLunaFuryButtonDebounce", "button latency") as unknown as {
+        setLunaFuryButtonDebounce(button: "left" | "right" | "middle", milliseconds: number): Promise<unknown>;
+      };
+      await client.setLunaFuryButtonDebounce(button, milliseconds);
+    },
+  });
+}
+
+export function applyLunaFuryWheelGuard(guard: { enabled: boolean; windowMs: number }): void {
+  if (!latestDeviceStatus?.lunafury?.wheelGuard) return;
+  stageChange({
+    key: "lunafury-wheel-guard",
+    label: `Wheel guard ${guard.enabled ? `${guard.windowMs} ms` : "off"}`,
+    command: "Change wheel anti-mistouch settings",
+    progress: "Changing wheel anti-mistouch settings…",
+    preview: (status) => { if (status.lunafury) status.lunafury.wheelGuard = { ...guard }; },
+    apply: () => callClientMethod("setLunaFuryWheelGuard", "wheel anti-mistouch", guard),
   });
 }
 

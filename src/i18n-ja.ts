@@ -3,6 +3,21 @@ import type { I18nKey } from "./i18n.ts";
 /** Japanese strings, split into a lazy chunk so the initial bundle ships
     English only. Loaded via ensureLocale() before first use. */
 export const ja: Record<I18nKey, string> = {
+  "luna.angleSnap": "Angle Snap",
+  "luna.competitiveMode": "Competitive Mode",
+  "luna.trackingMode": "Tracking Mode",
+  "luna.motionSync": "Motion Sync",
+  "luna.rippleControl": "Ripple Control",
+  "luna.buttons": "ボタン応答",
+  "luna.lightning": "ライトニングトリガー",
+  "luna.leftPriority": "左ボタン優先",
+  "luna.rightPriority": "右ボタン優先",
+  "luna.leftDebounce": "左ボタンの遅延",
+  "luna.rightDebounce": "右ボタンの遅延",
+  "luna.middleDebounce": "中央ボタンのデバウンス",
+  "luna.wheelGuard": "ホイールの誤操作防止",
+  "luna.wheelGuardWindow": "ホイール保護時間",
+  "luna.sensorAngle": "センサー角度",
   "nav.language": "言語",
   "nav.settings": "設定",
   "nav.support": "サポート",

@@ -6,6 +6,21 @@ import type { InterfaceLocale } from "./interface-preferences";
     inside the controller stay English until phase 2. */
 
 const en = {
+  "luna.angleSnap": "Angle Snap",
+  "luna.competitiveMode": "Competitive Mode",
+  "luna.trackingMode": "Tracking Mode",
+  "luna.motionSync": "Motion Sync",
+  "luna.rippleControl": "Ripple Control",
+  "luna.buttons": "Button response",
+  "luna.lightning": "Lightning Trigger",
+  "luna.leftPriority": "Left priority",
+  "luna.rightPriority": "Right priority",
+  "luna.leftDebounce": "Left button latency",
+  "luna.rightDebounce": "Right button latency",
+  "luna.middleDebounce": "Middle button debounce",
+  "luna.wheelGuard": "Wheel anti-mistouch",
+  "luna.wheelGuardWindow": "Wheel guard window",
+  "luna.sensorAngle": "Sensor angle",
   "nav.language": "Language",
   "nav.settings": "Settings",
   "nav.support": "Support",
