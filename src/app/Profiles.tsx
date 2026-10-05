@@ -90,6 +90,7 @@ export function Profiles({
         {snapshot.setupProfilesAvailable ? (
           <button
             id="setup-logitech-profiles"
+            className="icon-button profile-setup-button"
             type="button"
             disabled={snapshot.settingInProgress}
             onClick={() => void control.setUpLogitechProfiles()}
