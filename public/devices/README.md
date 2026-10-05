@@ -160,18 +160,6 @@ trusted.
 4. Keep this note as provenance. Vendor product art — treat as a request
    pending licensing review.
 
-`ajazz-aj179-pro.png` comes from AJAZZ Driver（R） 2.1.94, relative path
-`resources/app/company/company_AJAZZMOUSE/dev/mouse_pan1080_g182_ajazz_3395_1k_8k.png`.
-Its catalog maps this resource to AJ179 PRO, device id 1851, not TITAN/APEX.
-The original is a transparent 200x288 black top-down render; the local copy
-adds transparent padding on a 300x400 canvas without rescaling the render.
-It is selected by the resolved model name, not the shared GearHub receiver PID.
-**Needs a maintainer upload** after licensing review; the vendor PNG is not
-included in this PR. Original asset SHA-256:
-`679d089ecc7faa11cadb210916a9ca82426e8c61f91f3c1f56b686ab06a2a463`.
-Redistribution rights have not been established. The application manifest's
-ISC field is not treated as permission to redistribute vendor product art.
-
 `noir-m2-nex.png` is reserved for the name-fallback mapping for Noir Gear's
 M2-NEX. A local render from the vendor configurator may be used for development
 previews, but it is deliberately not committed here. Before publishing the

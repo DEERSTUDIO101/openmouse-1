@@ -119,18 +119,6 @@ test("Attack Shark R2 resolves by name (PID 0x402D is shared with the M5 Pro)", 
   );
 });
 
-test("AJ179 PRO artwork follows the resolved name, not the shared GearHub PID", () => {
-  for (const productId of [0x402d, 0x4026, 0x402c]) {
-    assert.equal(deviceImage(dev(0x3151, productId), "AJAZZ AJ179 PRO"), CDN + "ajazz-aj179-pro.png");
-  }
-  assert.equal(deviceImage(null, "AJAZZ AJ179PRO"), CDN + "ajazz-aj179-pro.png");
-  assert.equal(deviceImage(dev(0x3151, 0x402d), "Attack Shark R2"), "/devices/attackshark-r2.png");
-  assert.equal(deviceImage(dev(0x3151, 0x402d), "Lingbao M5 Pro"), CDN + "unknown-device.png");
-  for (const name of ["AJAZZ 2.4G 8K", "pan1080xa3", "AJAZZ AJ179", "AJAZZ AJ179 PRO MAX"]) {
-    assert.equal(deviceImage(dev(0x3151, 0x402d), name), CDN + "unknown-device.png");
-  }
-});
-
 test("OP1we and OP1 8K resolve to distinct renders by name", () => {
   assert.equal(deviceImage(null, "OP1we"), CDN + "endgame-gear-op1we.png");
   assert.equal(deviceImage(null, "OP1 8K"), CDN + "endgame-gear-op1-8k.png");
