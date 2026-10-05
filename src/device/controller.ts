@@ -104,7 +104,8 @@ import {
   decodeProfileKey, encodeProfileKey, profileKeyMatchesDevice, type ProfileKeyPayload,
 } from "./profile-key";
 import { hasCapturedFactoryProfiles } from "./logitech-factory";
-import type { MouseLighting, MouseStatus } from "@openmouse/protocol/drivers/mouse-types";
+import type { MagneticButtonStatus, MouseLighting, MouseStatus } from "@openmouse/protocol/drivers/mouse-types";
+import { isMagneticButtonClient, type MagneticButtonClient } from "@openmouse/protocol/drivers/magnetic";
 import type { KsnakeMacroProfile } from "@openmouse/protocol/ksnake";
 import {
   cloneM2NexProfile,
@@ -197,6 +198,7 @@ import { traitsFor } from "./traits";
 import type {
   AnalogTuning,
   AnalogTuningState,
+  MagneticCalibrationView,
   ControlSnapshot,
   ProfileView,
   DeviceCapabilities,
@@ -390,6 +392,10 @@ let pendingBusy = false;
 let pendingStatusText: string | null = null;
 let profilesExpanded = false;
 let eggPollingDivider: number | null = null;
+const MAGNETIC_IDLE: MagneticCalibrationView = { phase: "idle", message: "", left: 0, right: 0, step: 0, steps: 0 };
+let magneticCalibration: MagneticCalibrationView = MAGNETIC_IDLE;
+let magneticCalibrationAbort: AbortController | null = null;
+let stagedMagneticTypes: ["magnetic" | "optical", "magnetic" | "optical"] | null = null;
 let analogTuning: AnalogTuningState = {
   mode: "both",
   left: { actuation: 1, rapidTrigger: 1, haptics: 0 },
@@ -537,6 +543,7 @@ function buildSnapshot(): ControlSnapshot {
     stagedNapeAssignments: [...stagedNapeAssignments.values()],
     editedNapeLayer,
     analogTuning,
+    magneticCalibration,
     eggPollingDivider,
     pending: {
       count: changes.length,
@@ -3204,6 +3211,127 @@ export function applyLogitechAnalogButton(button: 0 | 1): void {
   stageAnalogButton(button, button === 0 ? analogTuning.left : analogTuning.right);
 }
 
+function magneticClient(): MagneticButtonClient | null {
+  const client = activeSettingsClient();
+  return isMagneticButtonClient(client) ? client : null;
+}
+
+const MAGNETIC_SIDE = ["Left", "Right"] as const;
+
+function stageMagneticButton(
+  button: 0 | 1,
+  setting: string,
+  label: string,
+  preview: (state: MagneticButtonStatus) => void,
+  apply: (client: MagneticButtonClient) => Promise<unknown>,
+): void {
+  if (!magneticClient()) return;
+  const name = `${MAGNETIC_SIDE[button]} click ${label}`;
+  stageChange({
+    key: `magnetic-${setting}-${button}`,
+    label: name,
+    command: `Set the ${name.toLowerCase()}`,
+    progress: `Setting the ${name.toLowerCase()}…`,
+    preview: (status) => {
+      const state = status.magneticButtons?.buttons[button];
+      if (state) preview(state);
+    },
+    apply: async () => {
+      const client = magneticClient();
+      if (!client) throw new Error(st("ctl.gone"));
+      await apply(client);
+    },
+  });
+}
+
+export function applyMagneticTriggerPoint(button: 0 | 1, point: number): void {
+  stageMagneticButton(button, "trigger", `trigger point ${point}`, (state) => { state.triggerPoint = point; },
+    (client) => client.setMagneticTriggerPoint(button, point));
+}
+
+export function applyMagneticReleasePoint(button: 0 | 1, point: number | null): void {
+  const client = magneticClient();
+  if (!client?.setMagneticReleasePoint) return;
+  stageMagneticButton(button, "release", point === null ? "release follows trigger" : `release point ${point}`,
+    (state) => { state.releasePoint = point; },
+    (active) => active.setMagneticReleasePoint!(button, point));
+}
+
+export function applyMagneticRapidTrigger(button: 0 | 1, enabled: boolean, level: number, unit: string): void {
+  stageMagneticButton(button, "rapid", enabled ? `rapid trigger ${level}${unit}` : "rapid trigger off",
+    (state) => { state.rapidTriggerEnabled = enabled; state.rapidTrigger = level; },
+    (client) => client.setMagneticRapidTrigger(button, enabled, level));
+}
+
+export function applyMagneticSwitchType(button: 0 | 1, type: "magnetic" | "optical"): void {
+  const client = magneticClient();
+  const buttons = latestDeviceStatus?.magneticButtons?.buttons;
+  if (!client?.setMagneticSwitchTypes || !buttons) return;
+  const types = stagedMagneticTypes ?? [buttons[0]?.switchType ?? "optical", buttons[1]?.switchType ?? "optical"] as ["magnetic" | "optical", "magnetic" | "optical"];
+  const next: ["magnetic" | "optical", "magnetic" | "optical"] = [types[0], types[1]];
+  next[button] = type;
+  stagedMagneticTypes = next;
+  stageChange({
+    key: "magnetic-switch",
+    label: `Switch: left ${next[0]}, right ${next[1]}`,
+    command: "Choose the magnetic or optical switch",
+    progress: "Choosing the switch type…",
+    preview: (status) => {
+      const state = status.magneticButtons?.buttons;
+      if (state?.[0]) state[0].switchType = next[0];
+      if (state?.[1]) state[1].switchType = next[1];
+    },
+    apply: async () => {
+      const active = magneticClient();
+      if (!active?.setMagneticSwitchTypes) throw new Error(st("ctl.gone"));
+      await active.setMagneticSwitchTypes(stagedMagneticTypes ?? next);
+    },
+  });
+}
+
+export function subscribeButtonDepth(listener: (left: number, right: number) => void): () => void {
+  return magneticClient()?.onButtonDepth?.(listener) ?? (() => {});
+}
+
+export async function startMagneticCalibration(): Promise<void> {
+  const client = magneticClient();
+  if (!client?.calibrateMagneticButtons || settingInProgress || magneticCalibration.phase === "running") return;
+  if (hasPendingChanges()) {
+    pushToast("error", "Flash or discard the pending changes first", "Calibration cannot run while changes are waiting.");
+    emit();
+    return;
+  }
+  settingInProgress = true;
+  magneticCalibrationAbort = new AbortController();
+  magneticCalibration = { ...MAGNETIC_IDLE, phase: "running", message: "Starting…" };
+  emit();
+  try {
+    await client.calibrateMagneticButtons((progress) => {
+      magneticCalibration = { phase: "running", ...progress };
+      emit();
+    }, magneticCalibrationAbort.signal);
+    magneticCalibration = { ...magneticCalibration, phase: "done", message: "Calibration Successful" };
+  } catch (error) {
+    magneticCalibration = { ...magneticCalibration, phase: "failed", message: error instanceof Error ? error.message : "Calibration Failed" };
+  } finally {
+    magneticCalibrationAbort = null;
+    settingInProgress = false;
+    emit();
+  }
+  lastRenderedStatusKey = null;
+  void refreshStatus();
+}
+
+export function cancelMagneticCalibration(): void {
+  magneticCalibrationAbort?.abort();
+}
+
+export function dismissMagneticCalibration(): void {
+  if (magneticCalibration.phase === "running") return;
+  magneticCalibration = MAGNETIC_IDLE;
+  emit();
+}
+
 export function applyLogitechAnalogButtons(): void {
   if (blockedByGameProfileDraft()) return;
   if (!logitechClient()) return;
@@ -5094,6 +5222,48 @@ async function loadPreviewEntries(): Promise<void> {
   emit();
 }
 
+/** A stand-in that keeps magnetic settings in memory, so the preview behaves like a connected mouse. */
+function magneticPreviewClient(initial: MouseStatus): SupportedClient {
+  const status = structuredClone(initial);
+  const buttons = (): MagneticButtonStatus[] => status.magneticButtons!.buttons;
+  let depthListener: ((left: number, right: number) => void) | null = null;
+  const client = {
+    device: {} as HIDDevice,
+    pollIntervalMs: 0,
+    open: async () => undefined,
+    close: async () => undefined,
+    readStatus: async () => structuredClone(status),
+    setMagneticTriggerPoint: async (button: 0 | 1, point: number) => { buttons()[button]!.triggerPoint = point; return point; },
+    setMagneticReleasePoint: async (button: 0 | 1, point: number | null) => { buttons()[button]!.releasePoint = point; return point; },
+    setMagneticRapidTrigger: async (button: 0 | 1, enabled: boolean, level: number) => {
+      Object.assign(buttons()[button]!, { rapidTriggerEnabled: enabled, rapidTrigger: level });
+      return { enabled, level };
+    },
+    setMagneticSwitchTypes: async (types: readonly ["magnetic" | "optical", "magnetic" | "optical"]) => {
+      buttons().forEach((entry, index) => { entry.switchType = types[index]!; });
+    },
+    calibrateMagneticButtons: async (onProgress: (progress: { left: number; right: number; message: string; step: number; steps: number }) => void) => {
+      const frames = [[0, 0, "Press and hold both buttons fully"], [60, 40, "Press and hold both buttons fully"], [100, 100, "Release both buttons"], [0, 0, "Calibration Successful"]] as const;
+      for (const [index, [left, right, message]] of frames.entries()) {
+        onProgress({ left, right, message, step: index + 1, steps: frames.length });
+        await new Promise((resolve) => window.setTimeout(resolve, 700));
+      }
+      status.magneticButtons!.calibration = "calibrated";
+    },
+    onButtonDepth: (listener: (left: number, right: number) => void) => {
+      depthListener = listener;
+      let tick = 0;
+      const timer = window.setInterval(() => {
+        tick += 1;
+        const wave = Math.abs(Math.sin(tick / 8)) * 100;
+        depthListener?.(Math.round(wave), Math.round(Math.abs(Math.cos(tick / 11)) * 100));
+      }, 120);
+      return () => { window.clearInterval(timer); depthListener = null; };
+    },
+  };
+  return client as unknown as SupportedClient;
+}
+
 function previewClient(): LogitechHidppClient {
   const refuse = async (): Promise<never> => {
     throw new Error(st("ctl.previewNoMouse"));
@@ -5268,6 +5438,7 @@ async function showFixturePreview(name: PreviewMode): Promise<void> {
   if (name === "g703") showG703PreviewProfiles();
   // Populate brand capabilities so preview cards that gate on capabilities still render.
   capabilities = readCapabilities();
+  if (fixture.status.magneticButtons) active = magneticPreviewClient(fixture.status);
   applyStatus(fixture.status);
   if (name === "nape-pro") {
     const layer = fixture.status.napeLayer ?? 1;
@@ -5301,6 +5472,7 @@ export function start(): void {
     if (!isPendingChange("haptic-enabled")) stagedHapticEnabled = null;
     if (!isPendingChange("haptic-battery-saving")) stagedHapticBatterySaving = null;
     if (!isPendingChange("wheel-mode")) stagedWheelMode = null;
+    if (!isPendingChange("magnetic-switch")) stagedMagneticTypes = null;
     if (!isPendingChange("smart-shift")) stagedSmartShift = undefined;
     if (!isPendingChange("hi-res-scroll")) stagedHiRes = null;
     if (!isPendingChange("invert-scroll")) stagedInvertScroll = null;

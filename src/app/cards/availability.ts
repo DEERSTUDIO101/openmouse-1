@@ -9,6 +9,7 @@ export interface CardAvailability {
   sensor: boolean;
   lightforce: boolean;
   superstrike: boolean;
+  magnetic: boolean;
   lighting: boolean;
   lightingAdvanced: boolean;
   signal: boolean;
@@ -54,6 +55,7 @@ const NOTHING: CardAvailability = {
   sensor: false,
   lightforce: false,
   superstrike: false,
+  magnetic: false,
   lighting: false,
   lightingAdvanced: false,
   signal: false,
@@ -141,6 +143,7 @@ export function cardAvailability(snapshot: ControlSnapshot): CardAvailability {
     sensor: sensor && ready,
     lightforce: Boolean(status.lightforceSwitchMode),
     superstrike: traits.logitech && status.analogButtonTuning?.buttons.length === 2,
+    magnetic: status.magneticButtons?.buttons.length === 2,
     lighting: Boolean(status.lighting || status.lightingZones?.length),
     lightingAdvanced: host && !isNoirKsnake && Boolean(status.lighting || status.lightingZones?.length),
     onboardProfiles: (status.profileCount ?? 0) > 1 && status.activeProfile != null,

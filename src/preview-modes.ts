@@ -32,6 +32,8 @@ export const PREVIEW_KEYS = [
   "nape-pro",
   "mx-master-3s",
   "g703",
+  "gwolves-pro",
+  "rawm-v4-gt",
   "terra-pro",
   "logitech-legacy",
 ] as const;
@@ -78,6 +80,8 @@ export function parsePreviewMode(value: string | null): PreviewMode | null {
     case "nape-pro": return "nape-pro";
     case "mx-master-3s": return "mx-master-3s";
     case "g703": return "g703";
+    case "gwolves-pro": return "gwolves-pro";
+    case "rawm-v4-gt": return "rawm-v4-gt";
     case "logitech-legacy": return "logitech-legacy";
     default: return null;
   }

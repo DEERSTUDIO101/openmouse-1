@@ -23,6 +23,12 @@ test("a connected mouse exposes only tabs backed by available controls", () => {
   ]);
 });
 
+test("magnetic buttons put their settings under the buttons tab", () => {
+  assert.deepEqual(availableWorkspaceTabs(true, availability({ magnetic: true })), [
+    "overview", "performance", "buttons", "advanced",
+  ]);
+});
+
 test("every profile surface retains the profiles tab", () => {
   for (const surface of ["profiles", "keychronNapeLayers", "atkProfile", "onboardProfiles", "pulsarPro"] as const) {
     assert.equal(availableWorkspaceTabs(true, availability({ [surface]: true })).includes("profiles"), true, surface);

@@ -21,6 +21,7 @@ import { t, tp, connectionText, type I18nKey } from "../i18n";
 import { Diagnostics, LogitechDetails } from "./Diagnostics";
 import { KeychronNapeLayers } from "./KeychronNapeLayers";
 import { Profiles } from "./Profiles";
+import { MagneticButtons } from "./MagneticButtons";
 import { Superstrike } from "./Superstrike";
 import { DpiCard } from "./cards/DpiCard";
 import { LightforceCard, PollingCard, SensorCard } from "./cards/PerformanceCards";
@@ -604,6 +605,7 @@ export function Workspace({
   const showTeevolutionProfiles = show(snapshot.traits.teevolution && has.onboardProfiles, ["profiles"]);
   const showNapeLayers = show(has.keychronNapeLayers, ["profiles"]);
   const showSuperstrike = show(has.superstrike, ["buttons"]);
+  const showMagnetic = show(has.magnetic, ["buttons"]);
   const showLogitechDetails = device && show(has.logitechDetails, ["advanced"]);
   const showMxMaster = on(tab, ["advanced"])
     && (status.hapticIntensity != null || status.wheelMode != null || status.friendlyName != null || status.hostCount != null);
@@ -611,7 +613,7 @@ export function Workspace({
   const showOverview = on(tab, ["overview"]);
 
   const anyPanel = performance.length > 0 || macro.length > 0 || advanced.length > 0 || lighting.length > 0
-    || showProfiles || showTeevolutionProfiles || showNapeLayers || showSuperstrike
+    || showProfiles || showTeevolutionProfiles || showNapeLayers || showSuperstrike || showMagnetic
     || showLogitechDetails || showMxMaster || showDiagnostics || showOverview;
 
   const slotsAvailable = snapshot.profile.slotsAvailable;
@@ -693,6 +695,7 @@ export function Workspace({
         </section>
       ) : null}
       {showSuperstrike ? <Superstrike snapshot={snapshot} /> : null}
+      {showMagnetic ? <MagneticButtons snapshot={snapshot} /> : null}
 
       {advanced.length > 0 ? (
         <section

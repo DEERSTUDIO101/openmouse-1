@@ -301,6 +301,17 @@ test("HITS tuning needs exactly the two primary buttons", () => {
   assert.equal(cardAvailability(snapshot({})).superstrike, false);
 });
 
+test("the magnetic card follows the mouse's own report, whatever the brand", () => {
+  const range = { triggerPointRange: { min: 1, max: 10 }, rapidTriggerRange: null, rapidTriggerUnit: "ms" as const, rapidTriggerSwitch: false, canChooseSwitchType: false, calibration: null, liveDepth: false };
+  assert.equal(cardAvailability(snapshot({
+    status: { brand: "G-Wolves", magneticButtons: { ...range, buttons: [{}, {}] as never } },
+  })).magnetic, true);
+  assert.equal(cardAvailability(snapshot({
+    status: { brand: "G-Wolves", magneticButtons: { ...range, buttons: [{}] as never } },
+  })).magnetic, false);
+  assert.equal(cardAvailability(snapshot({ status: { brand: "G-Wolves" } })).magnetic, false);
+});
+
 test("debounce is offered only by the families that store it", () => {
   assert.equal(cardAvailability(snapshot({
     status: { brand: "Pulsar", ui: { family: "pulsar" }, debounceMs: 4 },
