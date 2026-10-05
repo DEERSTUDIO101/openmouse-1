@@ -87,6 +87,16 @@ export function Profiles({
         >
           <IconShare />
         </button>
+        {snapshot.setupProfilesAvailable ? (
+          <button
+            id="setup-logitech-profiles"
+            type="button"
+            disabled={snapshot.settingInProgress}
+            onClick={() => void control.setUpLogitechProfiles()}
+          >
+            {t(locale, "prof.setUp")}
+          </button>
+        ) : null}
         {snapshot.resetProfilesAvailable ? (
           <button
             id="reset-logitech-profiles"

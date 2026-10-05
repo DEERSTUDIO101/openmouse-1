@@ -569,6 +569,7 @@ export const ja: Record<I18nKey, string> = {
   "prof.reload": "プロファイルを再読み込み",
   "prof.deleteReset": "すべての内蔵プロファイルを削除してリセット",
   "prof.restoreDefaults": "すべての内蔵プロファイルをLogitechのデフォルトに完全に復元",
+  "prof.setUp": "プロファイルを設定",
   "prof.openHost": "ホスト設定を開く",
   "prof.hostAlready": "マウスはすでにホストモードです",
   "prof.switchHost": "マウスをホストモードに切り替え",

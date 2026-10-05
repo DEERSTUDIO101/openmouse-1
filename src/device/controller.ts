@@ -549,6 +549,11 @@ function buildSnapshot(): ControlSnapshot {
     resetProfilesAvailable: logitechClient() !== null
       && latestDeviceStatus?.brand === "Logitech"
       && supportsFactoryReset(latestDeviceStatus?.onboardProfileFormat?.id ?? null),
+    setupProfilesAvailable: logitechClient() !== null
+      && latestDeviceStatus?.brand === "Logitech"
+      && supportsFactoryReset(latestDeviceStatus?.onboardProfileFormat?.id ?? null)
+      && onboardProfiles !== null
+      && onboardProfiles.length === 0,
     previewMode,
     previewEnabled: previewModeEnabled,
     previewEntries,
@@ -4009,6 +4014,50 @@ export async function resetLogitechProfiles(): Promise<void> {
   } catch (error) {
     recordDiagnosticError(error, st("ctl.unableReset"));
     const message = error instanceof Error ? error.message : "Unable to reset every onboard profile.";
+    readStatus = message;
+    onboardStatus = message;
+    onboardProfiles = null;
+    await reloadOnboardProfiles();
+  } finally {
+    endDeviceWrite();
+  }
+}
+
+/**
+ * Gives a Logitech mouse with no stored profiles (G HUB has never linked it)
+ * the factory set, so G HUB is not needed first. Only offered where a complete
+ * factory image was captured, and only while the profile list is empty.
+ */
+export async function setUpLogitechProfiles(): Promise<void> {
+  if (blockedByGameProfileDraft()) return;
+  const client = logitechClient();
+  if (!client || settingInProgress || !supportsFactoryReset(lastProfileFormat?.id)) return;
+  if (onboardProfiles === null || onboardProfiles.length > 0) return;
+
+  const confirmed = window.confirm(
+    "This mouse has no onboard profiles yet.\n\n"
+    + "Set them up now? OpenMouse will write the Logitech factory profiles into the mouse's memory, with profile 1 active. This is what G HUB does the first time it links a mouse, so G HUB is not needed first.",
+  );
+  if (!confirmed) return;
+
+  settingInProgress = true;
+  readStatus = st("ctl.resetting");
+  onboardStatus = st("ctl.writingDefaults");
+  emit();
+  recordDiagnosticCommand("Set up Logitech onboard profiles on a mouse with none");
+  try {
+    await client.initializeBlankOnboardProfiles();
+    onboardProfiles = await client.readOnboardProfiles();
+    editedProfile = onboardProfiles[0]?.sector ?? "host";
+    lastDeviceMode = "Onboard";
+    const status = await client.readStatus();
+    deviceStatuses.set(client.device, status);
+    applyStatus(status);
+    readStatus = st("ctl.resetDone");
+    onboardStatus = st("ctl.resetComplete");
+  } catch (error) {
+    recordDiagnosticError(error, st("ctl.unableReset"));
+    const message = error instanceof Error ? error.message : "Unable to set up the onboard profiles.";
     readStatus = message;
     onboardStatus = message;
     onboardProfiles = null;

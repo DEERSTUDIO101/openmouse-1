@@ -569,6 +569,7 @@ export const es: Record<I18nKey, string> = {
   "prof.reload": "Recargar perfiles",
   "prof.deleteReset": "Eliminar y restablecer todos los perfiles integrados",
   "prof.restoreDefaults": "Restaurar permanentemente todos los perfiles integrados a los valores predeterminados de Logitech",
+  "prof.setUp": "Configurar perfiles",
   "prof.openHost": "Abrir configuración de host",
   "prof.hostAlready": "El mouse ya está en modo host",
   "prof.switchHost": "Cambiar el mouse a modo host",

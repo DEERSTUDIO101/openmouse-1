@@ -568,6 +568,7 @@ export const ru: Record<I18nKey, string> = {
   "prof.reload": "Перезагрузить профили",
   "prof.deleteReset": "Удалить и сбросить все встроенные профили",
   "prof.restoreDefaults": "Безвозвратно вернуть все встроенные профили к настройкам Logitech",
+  "prof.setUp": "Настроить профили",
   "prof.openHost": "Открыть настройки хоста",
   "prof.hostAlready": "Мышь уже в режиме хоста",
   "prof.switchHost": "Перевести мышь в режим хоста",

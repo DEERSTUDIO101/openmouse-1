@@ -568,6 +568,7 @@ export const ar: Record<I18nKey, string> = {
   "prof.reload": "إعادة تحميل الملفات",
   "prof.deleteReset": "حذف وإعادة تعيين كل ملف مدمج",
   "prof.restoreDefaults": "استعادة كل ملف مدمج نهائيًا إلى إعدادات Logitech الافتراضية",
+  "prof.setUp": "إعداد الملفات",
   "prof.openHost": "فتح إعدادات المضيف",
   "prof.hostAlready": "الماوس في وضع المضيف بالفعل",
   "prof.switchHost": "تبديل الماوس إلى وضع المضيف",
