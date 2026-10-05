@@ -60,7 +60,6 @@ function resolveDeviceImageFilename(_device: HIDDevice | null | undefined, displ
   // R2 shares PID 0x402D with the Lingbao M5 Pro, so it can only be told apart
   // by the name the gearhub driver reads back from the device id.
   if (/\battack\s*shark\s*r2\b/i.test(displayName)) return "attackshark-r2.png";
-  if (/\bajazz\s+aj179\s*pro\b(?!\s*max\b)/i.test(displayName)) return "ajazz-aj179-pro.png";
   if (/\bdelux\b.*\bm800/i.test(displayName) || /\bm800\s*(mini|pro)?\b/i.test(displayName)) {
     return "delux-m800-mini.png";
   }
