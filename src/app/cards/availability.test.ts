@@ -39,6 +39,41 @@ const CONTROL = {
   mappedTo: 0x00c3, diverted: false, remappableTo: [0x0052], remapFlags: 0,
 } as unknown as NonNullable<ControlSnapshot["buttons"]>[number];
 
+test("LunaFury exposes only successfully read controls and replaces global debounce", () => {
+  const has = cardAvailability(snapshot({ status: {
+    brand: "LunaFury", ui: { family: "lunafury" }, debounceMs: 4, angleTuning: -12,
+    lunafury: { lightningMode: 0, leftDebounceMs: 0, middleDebounceMs: 1,
+      wheelGuard: { enabled: false, windowMs: 0 } },
+  } }));
+  assert.equal(has.lunafuryButtons, true);
+  assert.equal(has.lunafuryWheelGuard, true);
+  assert.equal(has.processing, true);
+  assert.equal(has.debounce, false);
+});
+
+test("unknown LunaFury controls are hidden without losing basic debounce", () => {
+  const has = cardAvailability(snapshot({ status: {
+    brand: "LunaFury", ui: { family: "lunafury" }, debounceMs: 4, lunafury: {},
+  } }));
+  assert.equal(has.lunafuryButtons, false);
+  assert.equal(has.lunafuryWheelGuard, false);
+  assert.equal(has.debounce, true);
+  const middleOnly = cardAvailability(snapshot({ status: {
+    brand: "LunaFury", ui: { family: "lunafury" }, debounceMs: 4, lunafury: { middleDebounceMs: 1 },
+  } }));
+  assert.equal(middleOnly.lunafuryButtons, true);
+  assert.equal(middleOnly.debounce, true);
+});
+
+test("LunaFury-specific cards are not offered to another CompX brand", () => {
+  const has = cardAvailability(snapshot({ status: {
+    brand: "Attack Shark", ui: { family: "attack-shark" },
+    lunafury: { lightningMode: 1, wheelGuard: { enabled: true, windowMs: 100 } },
+  } }));
+  assert.equal(has.lunafuryButtons, false);
+  assert.equal(has.lunafuryWheelGuard, false);
+});
+
 test("the button card appears only when the mouse reports controls", () => {
   // The driver answers with an empty list on a mouse without 0x1B04, so this
   // must key on the controls themselves rather than on the brand.
@@ -494,6 +529,25 @@ test("the G-Wolves XVI generation opens sleep, debounce and processing, but not 
       sleepTimeout: 60,
     },
   }));
+  assert.equal(cards.sleep, true);
+  assert.equal(cards.debounce, true);
+  assert.equal(cards.processing, true);
+  assert.equal(cards.signal, false);
+});
+
+test("LunaFury exposes CompX advanced controls without a signal card", () => {
+  const cards = cardAvailability(snapshot({
+    status: {
+      brand: "LunaFury",
+      ui: { family: "lunafury" },
+      motionSync: true,
+      angleSnapping: false,
+      rippleControl: false,
+      debounceMs: 4,
+      sleepTimeout: 300,
+    },
+  }));
+  assert.equal(cards.advancedHost, true);
   assert.equal(cards.sleep, true);
   assert.equal(cards.debounce, true);
   assert.equal(cards.processing, true);

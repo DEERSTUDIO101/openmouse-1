@@ -3,6 +3,21 @@ import type { I18nKey } from "./i18n";
 /** Vietnamese strings, split into a lazy chunk so the initial bundle
     ships English only. Loaded via ensureLocale() before first use. */
 export const vi: Record<I18nKey, string> = {
+  "luna.angleSnap": "Hiệu chỉnh đường thẳng",
+  "luna.competitiveMode": "Chế độ thi đấu",
+  "luna.trackingMode": "Chế độ theo dõi",
+  "luna.motionSync": "Đồng bộ chuyển động",
+  "luna.rippleControl": "Kiểm soát gợn",
+  "luna.buttons": "Phản hồi nút",
+  "luna.lightning": "Cò chớp",
+  "luna.leftPriority": "Ưu tiên trái",
+  "luna.rightPriority": "Ưu tiên phải",
+  "luna.leftDebounce": "Độ trễ nút trái",
+  "luna.rightDebounce": "Độ trễ nút phải",
+  "luna.middleDebounce": "Chống dội nút giữa",
+  "luna.wheelGuard": "Chống cuộn nhầm",
+  "luna.wheelGuardWindow": "Khoảng bảo vệ con lăn",
+  "luna.sensorAngle": "Góc cảm biến",
   "nav.language": "Ngôn ngữ",
   "nav.settings": "Cài đặt",
   "nav.support": "Hỗ trợ",

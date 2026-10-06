@@ -22,6 +22,7 @@ import { teevolutionSensorModeUi } from "@openmouse/protocol/teevolution";
 import type { KsnakeMacroProfile, KsnakeMacroStep } from "@openmouse/protocol/ksnake";
 import { isPulsarProProtocol } from "../../device/traits";
 import { isNoirKsnakeStatus } from "../../device/noir.ts";
+import { lunafurySettingLabel, lunafuryTrackingVisible } from "../../device/lunafury-labels.ts";
 import * as control from "../../device/controller";
 import { PULSAR_SLEEP_OPTIONS } from "../../device/controller";
 import { selectableValues, sleepLabel, sleepParts, sleepTotalSeconds, valuesWithCurrent, KEYCHRON_SLEEP_MAX_HOURS, KEYCHRON_SLEEP_MAX_SECONDS, KEYCHRON_SLEEP_MIN_SECONDS } from "../../device/options";
@@ -374,16 +375,29 @@ export function ProcessingCard({ snapshot }: { snapshot: ControlSnapshot }): Rea
     })
     : null;
 
-  const angleSnappingLabel = status.ui?.family === "atk" ? t(locale, "adv.straightLine") : t(locale, "adv.angleSnapping");
+  const angleSnappingLabel = lunafurySettingLabel(status, locale, "angleSnapping")
+    ?? (status.ui?.family === "atk" ? t(locale, "adv.straightLine") : t(locale, "adv.angleSnapping"));
 
   // WLMouse calls the same sensor setting High-speed mode in its own tool.
-  const hyperLabel = status.brand === "WLMouse" ? t(locale, "adv.highSpeed") : t(locale, "adv.hyperMode");
+  const hyperLabel = lunafurySettingLabel(status, locale, "hyperMode")
+    ?? (status.brand === "WLMouse" ? t(locale, "adv.highSpeed") : t(locale, "adv.hyperMode"));
   // Pulsar Pro shows the angle with the rest of its Pro-only settings.
   const angleTuning = isPulsarProProtocol(status) ? null : status.angleTuning;
+  const angleLabel = t(locale, status.brand === "LunaFury" ? "luna.sensorAngle" : "adv.angleTune");
 
-  const performanceLabel = status.brand === "CRDRAKO"
+  const performanceLabel = lunafurySettingLabel(status, locale, "performanceMode") ?? (status.brand === "CRDRAKO"
     ? t(locale, "adv.competitive")
-    : status.brand === "Teevolution" ? t(locale, "adv.highestPerf") : t(locale, "adv.perfMode");
+    : status.brand === "Teevolution" ? t(locale, "adv.highestPerf") : t(locale, "adv.perfMode"));
+
+  const hyperModeControl = (
+    <SwitchRow
+      id="hyper-mode-toggle"
+      label={hyperLabel}
+      value={status.hyperMode}
+      hidden={status.hyperMode == null}
+      onChange={(next) => control.applyPulsarToggle("hyperMode", next)}
+    />
+  );
 
   return (
     <article id="processing-settings" className="setting-card">
@@ -430,7 +444,7 @@ export function ProcessingCard({ snapshot }: { snapshot: ControlSnapshot }): Rea
 
       <SwitchRow
         id="motion-sync-toggle"
-        label="Motion Sync"
+        label={lunafurySettingLabel(status, locale, "motionSync") ?? "Motion Sync"}
         value={status.motionSync}
         hidden={ui?.hideMotionSync === true}
         onChange={(next) => control.applyPulsarToggle("motionSync", next)}
@@ -444,7 +458,7 @@ export function ProcessingCard({ snapshot }: { snapshot: ControlSnapshot }): Rea
       />
       <SwitchRow
         id="ripple-control-toggle"
-        label="Ripple control"
+        label={lunafurySettingLabel(status, locale, "rippleControl") ?? "Ripple control"}
         value={status.rippleControl}
         hidden={ui?.hideRippleControl === true || traits.finalmouse}
         onChange={(next) => control.applyPulsarToggle("rippleControl", next)}
@@ -456,21 +470,16 @@ export function ProcessingCard({ snapshot }: { snapshot: ControlSnapshot }): Rea
           locale={locale}
         />
       ) : null}
+      {status.brand === "LunaFury" ? hyperModeControl : null}
       <SwitchRow
         id="performance-mode-toggle"
         labelId="performance-mode-label"
         label={performanceLabel}
         value={status.performanceMode}
-        hidden={status.performanceMode == null || traits.eggFamily || traits.finalmouse}
+        hidden={status.performanceMode == null || traits.eggFamily || traits.finalmouse || !lunafuryTrackingVisible(status)}
         onChange={(next) => control.applyPulsarToggle("performanceMode", next)}
       />
-      <SwitchRow
-        id="hyper-mode-toggle"
-        label={hyperLabel}
-        value={status.hyperMode}
-        hidden={status.hyperMode == null}
-        onChange={(next) => control.applyPulsarToggle("hyperMode", next)}
-      />
+      {status.brand !== "LunaFury" ? hyperModeControl : null}
       <SwitchRow
         id="turbo-mode-toggle"
         label={t(locale, "adv.turboMode")}
@@ -513,11 +522,11 @@ export function ProcessingCard({ snapshot }: { snapshot: ControlSnapshot }): Rea
             <small className="setting-note">Precise horizontal movement regardless of mouse grip style. Rotation writes touch calibration and stay locked pending a USB capture — calibrate in ATK HUB for now.</small>
           </>
         ) : capabilities?.angleTuningWritable
-          ? <AngleTuningControl value={angleTuning} label={t(locale, "adv.angleTune")} />
+          ? <AngleTuningControl value={angleTuning} label={angleLabel} disabled={snapshot.settingInProgress} />
           : (
             <StepperSlider
               id="angle-tune-slider"
-              label={t(locale, "adv.angleTune")}
+              label={angleLabel}
               value={angleTuning}
               min={-30}
               max={30}
@@ -583,7 +592,7 @@ function AtkAntiMistouchControl({ milliseconds, busy, locale }: { milliseconds: 
   );
 }
 
-function AngleTuningControl({ value, label }: { value: number; label: string }): ReactNode {
+function AngleTuningControl({ value, label, disabled }: { value: number; label: string; disabled?: boolean }): ReactNode {
   const apply = (next: number): void => control.applyAngleTuning(Math.max(-30, Math.min(30, next)));
 
   return (
@@ -597,6 +606,7 @@ function AngleTuningControl({ value, label }: { value: number; label: string }):
       scale={["−30°", "0°", "+30°"]}
       formatValue={(shown) => `${shown > 0 ? "+" : ""}${shown}°`}
       pendingKey="angle-tuning"
+      disabled={disabled}
       onCommit={apply}
     />
   );

@@ -3,6 +3,21 @@ import type { I18nKey } from "./i18n.ts";
 /** Russian strings, split into a lazy chunk so the initial bundle ships
     English only. Loaded via ensureLocale() before first use. */
 export const ru: Record<I18nKey, string> = {
+  "luna.angleSnap": "Коррекция прямой линии",
+  "luna.competitiveMode": "Соревновательный режим",
+  "luna.trackingMode": "Режим отслеживания",
+  "luna.motionSync": "Синхронизация движения",
+  "luna.rippleControl": "Подавление дрожания",
+  "luna.buttons": "Отклик кнопок",
+  "luna.lightning": "Молниеносный спуск",
+  "luna.leftPriority": "Приоритет левой",
+  "luna.rightPriority": "Приоритет правой",
+  "luna.leftDebounce": "Задержка левой кнопки",
+  "luna.rightDebounce": "Задержка правой кнопки",
+  "luna.middleDebounce": "Подавление дребезга средней кнопки",
+  "luna.wheelGuard": "Защита от случайной прокрутки",
+  "luna.wheelGuardWindow": "Интервал защиты колеса",
+  "luna.sensorAngle": "Угол сенсора",
   "nav.language": "Язык",
   "nav.settings": "Настройки",
   "nav.support": "Поддержка",

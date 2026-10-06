@@ -21,6 +21,7 @@ import * as control from "../device/controller";
 import type { BridgeProfile } from "../bridge";
 import { subscribeBridgeStatus } from "../bridge-status-store";
 import {
+  mergeSnapshots,
   pickSnapshot,
   sanitizeSnapshot,
   type GameProfileSnapshot,
@@ -81,10 +82,10 @@ export function useBridgeProfileApplier(snapshot: ControlSnapshot): void {
     const target = profileTarget(profile);
     // Capture only fields not already held: when one game's profile gives way
     // to another's, the originals from before the first one still win.
-    const prior = { ...pickSnapshot(status, target), ...priorSettings.current };
+    const prior = mergeSnapshots(pickSnapshot(status, target), priorSettings.current ?? {});
     // Fields the previous profile changed but this one doesn't go back to
     // their originals, so the new game starts from the user's own settings.
-    const toWrite = { ...priorSettings.current, ...target };
+    const toWrite = mergeSnapshots(priorSettings.current ?? {}, target);
 
     writing.current = true;
     void control.flashGameProfileSnapshot(toWrite).then((result) => {

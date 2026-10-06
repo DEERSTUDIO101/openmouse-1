@@ -8,6 +8,14 @@ function availability(enabled: Partial<CardAvailability>): CardAvailability {
   return new Proxy(enabled, { get: (target, property) => Reflect.get(target, property) ?? false }) as CardAvailability;
 }
 
+test("LunaFury response and wheel guard retain the Buttons tab without global debounce", () => {
+  for (const field of ["lunafuryButtons", "lunafuryWheelGuard"] as const) {
+    assert.deepEqual(availableWorkspaceTabs(true, availability({ [field]: true })), [
+      "overview", "performance", "buttons", "advanced",
+    ]);
+  }
+});
+
 test("a connected mouse exposes only tabs backed by available controls", () => {
   assert.deepEqual(availableWorkspaceTabs(true, availability({})), ["overview", "performance", "advanced"]);
   assert.deepEqual(availableWorkspaceTabs(true, availability({ debounce: true })), [

@@ -3,6 +3,21 @@ import type { I18nKey } from "./i18n.ts";
 /** German strings, split into a lazy chunk so the initial bundle ships
     English only. Loaded via ensureLocale() before first use. */
 export const de: Record<I18nKey, string> = {
+  "luna.angleSnap": "Geradlinienkorrektur",
+  "luna.competitiveMode": "Wettkampfmodus",
+  "luna.trackingMode": "Tracking-Modus",
+  "luna.motionSync": "Bewegungssynchronisierung",
+  "luna.rippleControl": "Welligkeitskontrolle",
+  "luna.buttons": "Tastenreaktion",
+  "luna.lightning": "Blitz-Auslöser",
+  "luna.leftPriority": "Links bevorzugen",
+  "luna.rightPriority": "Rechts bevorzugen",
+  "luna.leftDebounce": "Latenz der linken Taste",
+  "luna.rightDebounce": "Latenz der rechten Taste",
+  "luna.middleDebounce": "Entprellung der mittleren Taste",
+  "luna.wheelGuard": "Schutz vor versehentlichem Scrollen",
+  "luna.wheelGuardWindow": "Schutzzeit des Mausrads",
+  "luna.sensorAngle": "Sensorwinkel",
   "nav.language": "Sprache",
   "nav.settings": "Einstellungen",
   "nav.support": "Unterstützen",

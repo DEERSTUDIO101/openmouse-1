@@ -3,6 +3,21 @@ import type { I18nKey } from "./i18n.ts";
 /** Simplified Chinese strings, split into a lazy chunk so the initial
     bundle ships English only. Loaded via ensureLocale() before first use. */
 export const zh: Record<I18nKey, string> = {
+  "luna.angleSnap": "直线修正",
+  "luna.competitiveMode": "竞技模式",
+  "luna.trackingMode": "追踪模式",
+  "luna.motionSync": "运动同步",
+  "luna.rippleControl": "波纹控制",
+  "luna.buttons": "按键响应",
+  "luna.lightning": "闪电扳机",
+  "luna.leftPriority": "左键优先",
+  "luna.rightPriority": "右键优先",
+  "luna.leftDebounce": "左键延迟",
+  "luna.rightDebounce": "右键延迟",
+  "luna.middleDebounce": "中键消抖",
+  "luna.wheelGuard": "防误触滚轮",
+  "luna.wheelGuardWindow": "防误触窗口",
+  "luna.sensorAngle": "传感器角度",
   "nav.language": "语言",
   "nav.settings": "设置",
   "nav.support": "支持",

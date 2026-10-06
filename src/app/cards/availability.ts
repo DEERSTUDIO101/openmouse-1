@@ -22,6 +22,8 @@ export interface CardAvailability {
   teevolutionDpiLighting: boolean;
   finalmouse: boolean;
   incott: boolean;
+  lunafuryButtons: boolean;
+  lunafuryWheelGuard: boolean;
   dongleLed: boolean;
   eggFilter: boolean;
   eggSpdt: boolean;
@@ -65,6 +67,8 @@ const NOTHING: CardAvailability = {
   teevolutionDpiLighting: false,
   finalmouse: false,
   incott: false,
+  lunafuryButtons: false,
+  lunafuryWheelGuard: false,
   dongleLed: false,
   eggFilter: false,
   eggSpdt: false,
@@ -154,6 +158,7 @@ export function cardAvailability(snapshot: ControlSnapshot): CardAvailability {
 
     signal: host && traits.signal,
     debounce: host && traits.debounce
+      && status.lunafury?.leftDebounceMs == null && status.lunafury?.rightDebounceMs == null
       && status.debounceMs !== null && status.debounceMs !== undefined,
     sleep: host && (traits.sleep || capabilities?.sleepOptions != null || razerSleep)
       && ui?.hideSleepCard !== true,
@@ -172,6 +177,11 @@ export function cardAvailability(snapshot: ControlSnapshot): CardAvailability {
     // actually reported.
     incott: host
       && (status.incottFireKeyTimes != null || status.incottReceiverLedMode != null),
+    lunafuryButtons: host && status.brand === "LunaFury" && (
+      status.lunafury?.lightningMode != null || status.lunafury?.leftDebounceMs != null
+      || status.lunafury?.rightDebounceMs != null || status.lunafury?.middleDebounceMs != null
+    ),
+    lunafuryWheelGuard: host && status.brand === "LunaFury" && status.lunafury?.wheelGuard != null,
     // Drivers report a boolean only for receivers that answer the LED command.
     dongleLed: typeof status.dongleLedEnabled === "boolean",
     eggFilter: eggs,
