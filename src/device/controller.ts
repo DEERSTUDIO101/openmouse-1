@@ -101,6 +101,7 @@ import { setCaptureContext } from "../capture-context";
 import {
   decodeProfileKey, encodeProfileKey, profileKeyMatchesDevice, type ProfileKeyPayload,
 } from "./profile-key";
+import { hasCapturedFactoryProfiles } from "./logitech-factory";
 import type { MouseLighting, MouseStatus } from "@openmouse/protocol/drivers/mouse-types";
 import type { KsnakeMacroProfile } from "@openmouse/protocol/ksnake";
 import {
@@ -551,7 +552,7 @@ function buildSnapshot(): ControlSnapshot {
       && supportsFactoryReset(latestDeviceStatus?.onboardProfileFormat?.id ?? null),
     setupProfilesAvailable: logitechClient() !== null
       && latestDeviceStatus?.brand === "Logitech"
-      && supportsFactoryReset(latestDeviceStatus?.onboardProfileFormat?.id ?? null)
+      && hasCapturedFactoryProfiles(latestDeviceStatus?.onboardProfileFormat)
       && onboardProfiles !== null
       && onboardProfiles.length === 0,
     previewMode,
@@ -4031,12 +4032,13 @@ export async function resetLogitechProfiles(): Promise<void> {
 export async function setUpLogitechProfiles(): Promise<void> {
   if (blockedByGameProfileDraft()) return;
   const client = logitechClient();
-  if (!client || settingInProgress || !supportsFactoryReset(lastProfileFormat?.id)) return;
+  if (!client || settingInProgress || !hasCapturedFactoryProfiles(lastProfileFormat)) return;
   if (onboardProfiles === null || onboardProfiles.length > 0) return;
 
   const confirmed = window.confirm(
     "This mouse has no onboard profiles yet.\n\n"
-    + "Set them up now? OpenMouse will write the Logitech factory profiles into the mouse's memory, with profile 1 active. This is what G HUB does the first time it links a mouse, so G HUB is not needed first.",
+    + "Set them up now? OpenMouse will write the Logitech factory profiles into the mouse's memory, with profile 1 active, without G HUB having to link it first.\n\n"
+    + "This replays the sequence captured from G HUB's own reset. It has not been confirmed on a mouse G HUB has never linked.",
   );
   if (!confirmed) return;
 
