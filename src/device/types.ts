@@ -229,6 +229,8 @@ export interface ControlSnapshot {
   diagnosticsOpen: boolean;
   captureAvailable: boolean;
   resetProfilesAvailable: boolean;
+  /** A Logitech mouse with no stored profiles that OpenMouse can set up itself. */
+  setupProfilesAvailable: boolean;
 
   previewMode: PreviewMode | null;
   previewEnabled: boolean;

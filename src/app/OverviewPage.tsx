@@ -25,6 +25,7 @@ import { Superstrike } from "./Superstrike";
 import { DpiCard } from "./cards/DpiCard";
 import { LightforceCard, PollingCard, SensorCard } from "./cards/PerformanceCards";
 import { LightingCard } from "./cards/LightingCard";
+import { LunaFuryButtonsCard, LunaFuryWheelCard } from "./cards/LunaFuryCards";
 import { MxMasterButtonsCard, MxMasterCards } from "./cards/MxMasterCards";
 import { AtkButtonCard, AtkDongleCard, AtkProfileCard, AtkReceiverCard, AtkSensorCard } from "./cards/AtkCards";
 import {
@@ -580,6 +581,8 @@ export function Workspace({
     show(has.lowPower, ["advanced"]) ? <LowPowerCard key="lowpower" snapshot={snapshot} /> : null,
     show(has.finalmouse, ["advanced"]) ? <FinalmouseCard key="finalmouse" snapshot={snapshot} /> : null,
     show(has.incott, ["advanced"]) ? <IncottCard key="incott" snapshot={snapshot} /> : null,
+    show(has.lunafuryButtons, ["buttons"]) ? <LunaFuryButtonsCard key="lunafury-buttons" snapshot={snapshot} /> : null,
+    show(has.lunafuryWheelGuard, ["buttons"]) ? <LunaFuryWheelCard key="lunafury-wheel" snapshot={snapshot} /> : null,
     device && show(has.dongleLed, ["advanced"]) ? <DongleLedCard key="dongle-led" snapshot={snapshot} /> : null,
     show(has.atkProfile, ["profiles"]) ? <AtkProfileCard key="atk-profile" snapshot={snapshot} /> : null,
     device && show(has.atkReceiver, ["advanced"]) ? <AtkReceiverCard key="atk-receiver" snapshot={snapshot} /> : null,

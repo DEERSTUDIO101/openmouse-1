@@ -41,6 +41,7 @@ const BY_FAMILY: Readonly<Record<string, Partial<DriverTraits>>> = {
   vgn: SHARED_ADVANCED,
   wlmouse: DIRECT_MODE,
   lamzu: DIRECT_MODE,
+  lunafury: DIRECT_MODE,
   "attack-shark": DIRECT_MODE,
   bytech: DIRECT_MODE,
   crdrako: DIRECT_MODE,

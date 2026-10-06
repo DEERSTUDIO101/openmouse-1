@@ -161,6 +161,7 @@
 
 /* Square icon buttons, matching the segmented controls' border and hover. */
 .icon-button { display:inline-flex;align-items:center;justify-content:center;align-self:center;padding:.34rem;border:1px solid var(--border);border-radius:7px;background:var(--surface-raised);color:var(--text-soft);cursor:pointer;transition:border-color .16s ease,color .16s ease,background .16s ease }
+.icon-button.profile-setup-button { padding:.34rem .75rem;color:var(--ui-accent);font-size:.68rem;font-weight:600;white-space:nowrap }
 .icon-button:hover:not(:disabled) { border-color:var(--ghost);background:var(--surface-hover-soft);color:var(--text-input) }
 .icon-button:disabled { opacity:.45;cursor:not-allowed }
 .icon-button.profile-delete-button { border-color:color-mix(in srgb,var(--destructive) 46%,var(--surface-panel));background:color-mix(in srgb,var(--destructive) 14%,var(--surface-panel));color:color-mix(in srgb,var(--destructive) 76%,var(--text-hover)) }

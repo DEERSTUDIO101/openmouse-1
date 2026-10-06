@@ -275,6 +275,8 @@ export const SUPPORTED_DEVICES: readonly SupportedDeviceEntry[] = [
   { brand: "Lamzu", model: "Atlantis (shared family ids)", status: "likely", pids: [0xf50f] },
   { brand: "Lamzu", model: "Thorn", status: "quickwin" },
   { brand: "CRDRAKO", model: "KO-ONE", status: "supported", pids: [0x6a, 0x6b] },
+  { brand: "LunaFury", model: "LUNA33", status: "likely", pids: [0x32, 0x33] },
+  { brand: "LunaFury", model: "TYPE33", status: "likely", pids: [0x54, 0x84] },
   { brand: "Ninjutso", model: "Sora V2", status: "supported", pids: [0xae11, 0xae12, 0xae13, 0xae14, 0xae15, 0xae16] },
   { brand: "Ninjutso", model: "Sora V3", status: "supported", pids: [0xe010] },
   { brand: "Ninjutso", model: "TEN", status: "supported", pids: [0xe020, 0xea01] },

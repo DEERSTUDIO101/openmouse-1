@@ -1,4 +1,5 @@
 import type { MouseStatus } from "@openmouse/protocol/drivers/mouse-types";
+import { diffLunaFurySettings, isLunaFuryProfileField, pickLunaFurySettings, sanitizeLunaFurySettings } from "./lunafury-profile.ts";
 
 /**
  * The device settings a per-game profile can carry. A game profile is stored
@@ -39,6 +40,7 @@ export const GAME_PROFILE_FIELDS = [
   "sleepTimeout",
   "lowBatteryWarning",
   "angleTuning",
+  "lunafury",
   "wheelAcceleration",
   "wheelMode",
   "smartShiftThreshold",
@@ -103,7 +105,10 @@ export function changedFields(before: MouseStatus, after: MouseStatus): string[]
 export function snapshotDiff(before: MouseStatus, after: MouseStatus): GameProfileSnapshot {
   const diff: Record<string, unknown> = {};
   for (const field of GAME_PROFILE_FIELDS) {
-    if (!same(before[field], after[field])) diff[field] = structuredClone(after[field]);
+    if (field === "lunafury") {
+      const settings = diffLunaFurySettings(before.lunafury, after.lunafury);
+      if (Object.keys(settings).length) diff.lunafury = settings;
+    } else if (!same(before[field], after[field])) diff[field] = structuredClone(after[field]);
   }
   return diff as GameProfileSnapshot;
 }
@@ -113,15 +118,28 @@ export function pickSnapshot(status: MouseStatus, snapshot: GameProfileSnapshot)
   const picked: Record<string, unknown> = {};
   for (const field of Object.keys(snapshot)) {
     if (!isGameProfileField(field)) continue;
+    if (field === "lunafury") {
+      const settings = pickLunaFurySettings(status.lunafury, snapshot.lunafury);
+      if (Object.keys(settings).length) picked.lunafury = settings;
+      continue;
+    }
     const value = status[field];
     if (value !== undefined) picked[field] = structuredClone(value);
   }
   return picked as GameProfileSnapshot;
 }
 
+/** Merge per-control namespaces when games switch, not entire device settings. */
+export function mergeSnapshots(base: GameProfileSnapshot, override: GameProfileSnapshot): GameProfileSnapshot {
+  const merged = { ...base, ...override };
+  if (base.lunafury || override.lunafury) merged.lunafury = { ...base.lunafury, ...override.lunafury };
+  return merged;
+}
+
 /** A comparison key that ignores field order (Bridge and the draft list fields differently). */
 export function snapshotKey(snapshot: GameProfileSnapshot): string {
-  return JSON.stringify(Object.fromEntries(Object.entries(snapshot).sort(([left], [right]) => left.localeCompare(right))));
+  const canonical = snapshot.lunafury ? { ...snapshot, lunafury: sanitizeLunaFurySettings(snapshot.lunafury) } : snapshot;
+  return JSON.stringify(Object.fromEntries(Object.entries(canonical).sort(([left], [right]) => left.localeCompare(right))));
 }
 
 /** Drops anything a stored snapshot carries that this build cannot apply. */
@@ -129,7 +147,44 @@ export function sanitizeSnapshot(raw: unknown): GameProfileSnapshot {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return {};
   const clean: Record<string, unknown> = {};
   for (const [field, value] of Object.entries(raw)) {
-    if (isGameProfileField(field) && value !== undefined) clean[field] = value;
+    if (field === "lunafury") {
+      const settings = sanitizeLunaFurySettings(value);
+      if (Object.keys(settings).length) clean.lunafury = settings;
+    } else if (isGameProfileField(field) && value !== undefined) clean[field] = value;
   }
   return clean as GameProfileSnapshot;
+}
+
+/** Track nested LunaFury controls separately while retaining the old field policy. */
+export function editableProfileFields(before: MouseStatus, after: MouseStatus): string[] | null {
+  const fields = changedFields(before, after);
+  if (!fields.every(isGameProfileField)) return null;
+  return fields.flatMap((field) => field === "lunafury"
+    ? Object.keys(diffLunaFurySettings(before.lunafury, after.lunafury)).map((key) => `lunafury.${key}`) : [field]);
+}
+
+export function matchingProfileFields(status: MouseStatus, snapshot: GameProfileSnapshot): string[] {
+  return Object.entries(snapshot).flatMap(([field, value]) => {
+    if (field === "lunafury") {
+      const target = sanitizeLunaFurySettings(value);
+      return Object.keys(target).filter((key) => isLunaFuryProfileField(key) && same(status.lunafury?.[key], target[key]))
+        .map((key) => `lunafury.${key}`);
+    }
+    return isGameProfileField(field) && same(status[field], value) ? [field] : [];
+  });
+}
+
+export function draftProfileSnapshot(before: MouseStatus, preview: MouseStatus, touched: Iterable<string>): GameProfileSnapshot {
+  const snapshot = snapshotDiff(before, preview);
+  for (const field of touched) {
+    if (field.startsWith("lunafury.")) {
+      const key = field.slice("lunafury.".length);
+      if (isLunaFuryProfileField(key) && preview.lunafury?.[key] !== undefined) {
+        snapshot.lunafury = { ...snapshot.lunafury, [key]: structuredClone(preview.lunafury[key]) };
+      }
+    } else if (!(field in snapshot) && isGameProfileField(field) && field !== "lunafury" && preview[field] !== undefined) {
+      Object.assign(snapshot, { [field]: structuredClone(preview[field]) });
+    }
+  }
+  return snapshot;
 }
