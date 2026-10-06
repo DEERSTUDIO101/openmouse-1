@@ -89,6 +89,15 @@ export interface PendingView {
   keys: readonly string[];
 }
 
+export interface MagneticCalibrationView {
+  phase: "idle" | "running" | "done" | "failed";
+  message: string;
+  left: number;
+  right: number;
+  step: number;
+  steps: number;
+}
+
 export interface AnalogTuning {
   actuation: number;
   rapidTrigger: number;
@@ -220,6 +229,7 @@ export interface ControlSnapshot {
   /** Nape Pro layer currently open in the Profiles tab, or null when unread. */
   editedNapeLayer: number | null;
   analogTuning: AnalogTuningState;
+  magneticCalibration: MagneticCalibrationView;
   eggPollingDivider: number | null;
 
   pending: PendingView;

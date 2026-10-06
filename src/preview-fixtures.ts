@@ -783,6 +783,64 @@ const LOGITECH_MX_MASTER_3S: MouseStatus = {
   firmware: ["RQK 70.00"],
 };
 
+const GWOLVES_PRO: MouseStatus = {
+  brand: "G-Wolves",
+  name: "G-Wolves HTS Plus Pro",
+  batteryPercent: 76,
+  batteryState: "Discharging",
+  dpi: 1600,
+  pollingRateHz: 1000,
+  supportedPollingRates: [125, 250, 500, 1000, 2000, 4000, 8000],
+  activeProfile: null,
+  liftOffDistance: "Medium",
+  connectionType: "Wired",
+  connectionDetail: "USB · 8K protocol",
+  magneticButtons: {
+    buttons: [
+      { switchType: "magnetic", triggerPoint: 5, rapidTrigger: 3, rapidTriggerEnabled: true },
+      { switchType: "magnetic", triggerPoint: 5, rapidTrigger: 3, rapidTriggerEnabled: true },
+    ],
+    triggerPointRange: { min: 1, max: 20 },
+    rapidTriggerRange: { min: 1, max: 10 },
+    rapidTriggerUnit: "level",
+    rapidTriggerSwitch: true,
+    canChooseSwitchType: false,
+    calibration: "unknown",
+    liveDepth: true,
+  },
+  firmware: ["Mouse v1.23"],
+};
+
+const RAWM_V4_GT: MouseStatus = {
+  brand: "RAWM",
+  name: "RAWM Leviathan V4 GT",
+  batteryPercent: 82,
+  batteryState: "Discharging",
+  dpi: 1600,
+  dpiY: 1600,
+  pollingRateHz: 8000,
+  supportedPollingRates: [125, 250, 500, 1000, 2000, 4000, 8000],
+  activeProfile: 1,
+  liftOffDistance: "Medium",
+  connectionType: "Wireless",
+  connectionDetail: "2.4 GHz receiver",
+  magneticButtons: {
+    buttons: [
+      { switchType: "magnetic", triggerPoint: 4, releasePoint: null, rapidTrigger: null, rapidTriggerEnabled: false },
+      { switchType: "magnetic", triggerPoint: 4, releasePoint: null, rapidTrigger: null, rapidTriggerEnabled: false },
+    ],
+    triggerPointRange: { min: 1, max: 10 },
+    releasePointRange: { min: 1, max: 10 },
+    rapidTriggerRange: { min: 1, max: 15 },
+    rapidTriggerUnit: "ms",
+    rapidTriggerSwitch: false,
+    canChooseSwitchType: true,
+    calibration: "calibrated",
+    liveDepth: false,
+  },
+  firmware: ["Mouse 0.0.0.28"],
+};
+
 /**
  * Keyed by the `?preview=` value. `superstrike` and `slots` are handled
  * separately because they drive panels beyond a plain status.
@@ -813,5 +871,7 @@ export const PREVIEW_FIXTURES: Record<FixturePreviewMode, PreviewFixture> = {
   "nape-pro": { label: "Keychron Nape Pro", status: KEYCHRON },
   "mx-master-3s": { label: "Logitech MX Master 3S", status: LOGITECH_MX_MASTER_3S },
   g703: { label: "Logitech G703", status: LOGITECH_G703 },
+  "gwolves-pro": { label: "G-Wolves HTS Plus Pro", status: GWOLVES_PRO },
+  "rawm-v4-gt": { label: "RAWM Leviathan V4 GT", status: RAWM_V4_GT },
   "logitech-legacy": { label: "Logitech G402 (legacy DPI)", status: LOGITECH_LEGACY },
 };

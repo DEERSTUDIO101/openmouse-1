@@ -33,42 +33,42 @@
 #logitech-device-details { flex: 0 0 auto; margin-top: .65rem; }
 #logitech-device-details .setting-card { min-height: 0; }
 #logitech-detail-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .55rem; }
-#logitech-analog-button-settings { flex: 0 0 auto; margin-top: .65rem; }
-#logitech-analog-button-settings .superstrike-tuning-card { min-height: 0; padding: 1rem; border-color: color-mix(in srgb, var(--ui-accent) 20%, var(--border)); background: linear-gradient(135deg, color-mix(in srgb, var(--ui-accent) 5%, var(--surface-menu)), var(--surface-panel-strong) 62%); }
-#logitech-analog-button-settings .superstrike-tuning-heading { margin-bottom: .2rem; }
-#logitech-analog-button-settings .superstrike-tuning-description { max-width: 540px; margin: .1rem 0 0; color: var(--text-soft); line-height: 1.45; }
-#logitech-analog-button-settings .superstrike-tabs { display: inline-flex; gap: .2rem; margin-top: .7rem; padding: .2rem; border: 1px solid var(--border); border-radius: 7px; background: var(--well); }
-#logitech-analog-button-settings .superstrike-tabs button { padding: .32rem .52rem; border: 0; border-radius: 5px; background: transparent; color: var(--muted); font-size: .58rem; font-weight: 700; }
-#logitech-analog-button-settings .superstrike-tabs button[aria-selected="true"] { background: var(--ui-accent-soft); color: var(--ui-accent); }
-#logitech-analog-button-settings .superstrike-tuning-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; margin-top: 1rem; }
-#logitech-analog-button-settings fieldset.superstrike-both-panel { display: none; margin-top: 1rem; padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; }
-#logitech-analog-button-settings fieldset.superstrike-both-panel legend { display: none; }
-#logitech-analog-button-settings fieldset.superstrike-both-panel::before { display: block; margin: 0 0 .55rem; color: var(--text-strong); font-size: .68rem; font-weight: 700; content: "●  Both primary buttons"; }
-#logitech-analog-button-settings .superstrike-tuning-panels[data-superstrike-mode="both"] .superstrike-independent-panel { display: none; }
-#logitech-analog-button-settings .superstrike-tuning-panels[data-superstrike-mode="both"] .superstrike-both-panel { display: block; }
-#logitech-analog-button-settings .superstrike-both-panel > p { margin: 0 0 .65rem; color: var(--muted); font-size: .61rem; line-height: 1.4; }
-#logitech-analog-button-settings .superstrike-button-card { min-width: 0; margin: 0; padding: .78rem; border: 1px solid var(--border); border-radius: 9px; background: var(--surface-superstrike); }
-#logitech-analog-button-settings .superstrike-button-card legend { display: flex; align-items: center; gap: .38rem; padding: 0 .1rem; color: var(--text-strong); font-size: .68rem; font-weight: 700; }
-#logitech-analog-button-settings .superstrike-button-dot { width: .42rem; height: .42rem; border-radius: 50%; background: var(--ui-accent); box-shadow: 0 0 0 3px var(--ui-accent-soft); }
-#logitech-analog-button-settings .superstrike-control-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(10rem, 1.15fr); align-items: center; gap: .9rem; padding: .58rem 0; border-bottom: 1px solid var(--line); }
-#logitech-analog-button-settings .superstrike-control-row:first-of-type { margin-top: .22rem; }
-#logitech-analog-button-settings .superstrike-control-row label { min-width: 0; color: var(--text-strong); font-size: .65rem; font-weight: 600; }
-#logitech-analog-button-settings .superstrike-control-row label small { display: block; margin-top: .12rem; color: var(--faint); font-size: .52rem; font-weight: 500; }
-#logitech-analog-button-settings .superstrike-control-row label small span::before { content: " · "; }
-#logitech-analog-button-settings .superstrike-steps input { display: none; }
-#logitech-analog-button-settings .superstrike-steps > div { display: grid; grid-template-columns: repeat(auto-fit, minmax(1.45rem, 1fr)); gap: .22rem; }
-#logitech-analog-button-settings .superstrike-steps button { min-width: 0; padding: .34rem .12rem; border: 1px solid var(--border); border-radius: 5px; background: var(--input); color: var(--text-soft); font: 650 .59rem var(--font-mono); }
-#logitech-analog-button-settings .superstrike-steps button:hover { border-color: var(--ghost); color: var(--text-hover); }
-#logitech-analog-button-settings .superstrike-steps button:disabled { opacity: .4; cursor: not-allowed; }
-#logitech-analog-button-settings .superstrike-rapid-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; min-width: 0; }
-#logitech-analog-button-settings .superstrike-rapid-controls .superstrike-switch { flex: 0 0 auto; }
-#logitech-analog-button-settings .superstrike-rapid-controls .superstrike-switch > div { grid-template-columns: repeat(2, 2.7rem); }
-#logitech-analog-button-settings .superstrike-rapid-controls > .superstrike-steps:not(.superstrike-switch) { flex: 1 1 8rem; min-width: 0; }
-#logitech-analog-button-settings .superstrike-steps button[aria-pressed="true"] { border-color: var(--ui-accent); background: var(--ui-accent); color: var(--ui-accent-ink); }
-#logitech-analog-button-settings .superstrike-apply-button { width: 100%; margin-top: .7rem; padding: .48rem .62rem; border: 1px solid color-mix(in srgb, var(--ui-accent) 62%, var(--border)); border-radius: 6px; background: var(--ui-accent-soft); color: var(--ui-accent); font-size: .62rem; font-weight: 750; transition: border-color .18s ease, background .18s ease, transform .18s ease; }
-#logitech-analog-button-settings .superstrike-apply-button:hover { border-color: var(--ui-accent); background: var(--ui-accent); color: var(--ui-accent-ink); transform: translateY(-1px); }
-#logitech-analog-button-settings .superstrike-apply-button:disabled,
-#logitech-analog-button-settings .superstrike-control-row input:disabled { cursor: wait; opacity: .5; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) { flex: 0 0 auto; margin-top: .65rem; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-tuning-card { min-height: 0; padding: 1rem; border-color: color-mix(in srgb, var(--ui-accent) 20%, var(--border)); background: linear-gradient(135deg, color-mix(in srgb, var(--ui-accent) 5%, var(--surface-menu)), var(--surface-panel-strong) 62%); }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-tuning-heading { margin-bottom: .2rem; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-tuning-description { max-width: 540px; margin: .1rem 0 0; color: var(--text-soft); line-height: 1.45; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-tabs { display: inline-flex; gap: .2rem; margin-top: .7rem; padding: .2rem; border: 1px solid var(--border); border-radius: 7px; background: var(--well); }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-tabs button { padding: .32rem .52rem; border: 0; border-radius: 5px; background: transparent; color: var(--muted); font-size: .58rem; font-weight: 700; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-tabs button[aria-selected="true"] { background: var(--ui-accent-soft); color: var(--ui-accent); }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-tuning-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; margin-top: 1rem; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) fieldset.superstrike-both-panel { display: none; margin-top: 1rem; padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) fieldset.superstrike-both-panel legend { display: none; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) fieldset.superstrike-both-panel::before { display: block; margin: 0 0 .55rem; color: var(--text-strong); font-size: .68rem; font-weight: 700; content: "●  Both primary buttons"; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-tuning-panels[data-superstrike-mode="both"] .superstrike-independent-panel { display: none; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-tuning-panels[data-superstrike-mode="both"] .superstrike-both-panel { display: block; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-both-panel > p { margin: 0 0 .65rem; color: var(--muted); font-size: .61rem; line-height: 1.4; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-button-card { min-width: 0; margin: 0; padding: .78rem; border: 1px solid var(--border); border-radius: 9px; background: var(--surface-superstrike); }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-button-card legend { display: flex; align-items: center; gap: .38rem; padding: 0 .1rem; color: var(--text-strong); font-size: .68rem; font-weight: 700; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-button-dot { width: .42rem; height: .42rem; border-radius: 50%; background: var(--ui-accent); box-shadow: 0 0 0 3px var(--ui-accent-soft); }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-control-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(10rem, 1.15fr); align-items: center; gap: .9rem; padding: .58rem 0; border-bottom: 1px solid var(--line); }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-control-row:first-of-type { margin-top: .22rem; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-control-row label { min-width: 0; color: var(--text-strong); font-size: .65rem; font-weight: 600; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-control-row label small { display: block; margin-top: .12rem; color: var(--faint); font-size: .52rem; font-weight: 500; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-control-row label small span::before { content: " · "; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-steps input { display: none; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-steps > div { display: grid; grid-template-columns: repeat(auto-fit, minmax(1.45rem, 1fr)); gap: .22rem; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-steps button { min-width: 0; padding: .34rem .12rem; border: 1px solid var(--border); border-radius: 5px; background: var(--input); color: var(--text-soft); font: 650 .59rem var(--font-mono); }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-steps button:hover { border-color: var(--ghost); color: var(--text-hover); }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-steps button:disabled { opacity: .4; cursor: not-allowed; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-rapid-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; min-width: 0; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-rapid-controls .superstrike-switch { flex: 0 0 auto; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-rapid-controls .superstrike-switch > div { grid-template-columns: repeat(2, 2.7rem); }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-rapid-controls > .superstrike-steps:not(.superstrike-switch) { flex: 1 1 8rem; min-width: 0; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-steps button[aria-pressed="true"] { border-color: var(--ui-accent); background: var(--ui-accent); color: var(--ui-accent-ink); }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-apply-button { width: 100%; margin-top: .7rem; padding: .48rem .62rem; border: 1px solid color-mix(in srgb, var(--ui-accent) 62%, var(--border)); border-radius: 6px; background: var(--ui-accent-soft); color: var(--ui-accent); font-size: .62rem; font-weight: 750; transition: border-color .18s ease, background .18s ease, transform .18s ease; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-apply-button:hover { border-color: var(--ui-accent); background: var(--ui-accent); color: var(--ui-accent-ink); transform: translateY(-1px); }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-apply-button:disabled,
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-control-row input:disabled { cursor: wait; opacity: .5; }
 
 #device-debug-details { flex: 0 0 auto; margin-top: .65rem; }
 .device-debug-card { min-height: 0 !important; }
@@ -94,10 +94,21 @@
   #egg-button-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
-#logitech-analog-button-settings .superstrike-press-meters { display: grid; gap: .35rem; margin: .2rem 0 .8rem; }
-#logitech-analog-button-settings .superstrike-press-meter { display: grid; grid-template-columns: 2.6rem 1fr; align-items: center; gap: .6rem; font: 650 .62rem var(--font-mono); color: var(--text-soft); }
-#logitech-analog-button-settings .superstrike-press-meter > div { display: grid; grid-template-columns: repeat(10, 1fr); gap: .2rem; }
-#logitech-analog-button-settings .superstrike-press-meter i { height: .55rem; border-radius: 2px; background: var(--input); border: 1px solid var(--border); }
-#logitech-analog-button-settings .superstrike-press-meter i[data-on="true"] { background: var(--accent, #2f8cff); border-color: transparent; }
-#logitech-analog-button-settings .superstrike-press-meter i[data-actuation="true"] { border-color: var(--warning); border-width: 2px; }
-#logitech-analog-button-settings .superstrike-press-meter i[data-actuation="true"][data-on="true"] { background: var(--warning); }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-press-meters { display: grid; gap: .35rem; margin: .2rem 0 .8rem; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-press-meter { display: grid; grid-template-columns: 2.6rem 1fr; align-items: center; gap: .6rem; font: 650 .62rem var(--font-mono); color: var(--text-soft); }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-press-meter > div { display: grid; grid-template-columns: repeat(10, 1fr); gap: .2rem; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-press-meter i { height: .55rem; border-radius: 2px; background: var(--input); border: 1px solid var(--border); }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-press-meter i[data-on="true"] { background: var(--accent, #2f8cff); border-color: transparent; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-press-meter i[data-actuation="true"] { border-color: var(--warning); border-width: 2px; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-press-meter i[data-actuation="true"][data-on="true"] { background: var(--warning); }
+
+:is(#logitech-analog-button-settings, #magnetic-button-settings) .magnetic-note { margin: .6rem 0 0; color: var(--muted); font-size: .58rem; line-height: 1.4; }
+#magnetic-button-settings .magnetic-calibration { margin-top: 1rem; padding-top: .8rem; border-top: 1px solid var(--line-strong); }
+#magnetic-button-settings .magnetic-calibration-head { display: flex; align-items: center; justify-content: space-between; gap: .9rem; }
+#magnetic-button-settings .magnetic-calibration-head strong { color: var(--text-strong); font-size: .68rem; }
+#magnetic-button-settings .magnetic-calibration-head p { margin: .15rem 0 0; color: var(--muted); font-size: .58rem; line-height: 1.4; }
+#magnetic-button-settings .magnetic-calibration-head .superstrike-apply-button { width: auto; margin: 0; white-space: nowrap; }
+#magnetic-button-settings .magnetic-calibration-progress { margin-top: .7rem; padding: .7rem; border-radius: 8px; background: var(--well); }
+#magnetic-button-settings .magnetic-calibration-progress p { margin: 0 0 .5rem; color: var(--text-soft); font-size: .62rem; white-space: pre-line; }
+#magnetic-button-settings .magnetic-calibration-progress[data-phase="done"] p { color: var(--ui-accent); }
+#magnetic-button-settings .magnetic-calibration-progress[data-phase="failed"] p { color: var(--warning); }
