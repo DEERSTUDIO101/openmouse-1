@@ -569,6 +569,7 @@ export const zh: Record<I18nKey, string> = {
   "prof.reload": "重新加载配置文件",
   "prof.deleteReset": "删除并重置全部板载配置文件",
   "prof.restoreDefaults": "将全部板载配置文件永久恢复为罗技默认值",
+  "prof.setUp": "设置配置文件",
   "prof.openHost": "打开主机设置",
   "prof.hostAlready": "鼠标已处于主机模式",
   "prof.switchHost": "将鼠标切换到主机模式",

@@ -517,6 +517,7 @@ export const vi: Record<I18nKey, string> = {
   "prof.reload": "Tải lại profiles",
   "prof.deleteReset": "Xóa và đặt lại mọi profile lưu trên chuột",
   "prof.restoreDefaults": "Khôi phục vĩnh viễn mọi profile lưu trên chuột về mặc định Logitech",
+  "prof.setUp": "Thiết lập hồ sơ",
   "prof.openHost": "Mở cài đặt host",
   "prof.hostAlready": "Chuột đã ở host mode",
   "prof.switchHost": "Chuyển chuột sang host mode",

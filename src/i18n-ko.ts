@@ -569,6 +569,7 @@ export const ko: Record<I18nKey, string> = {
   "prof.reload": "프로필 다시 불러오기",
   "prof.deleteReset": "모든 내장 프로필 삭제 및 초기화",
   "prof.restoreDefaults": "모든 내장 프로필을 Logitech 기본값으로 영구 복원",
+  "prof.setUp": "프로필 설정",
   "prof.openHost": "호스트 설정 열기",
   "prof.hostAlready": "마우스가 이미 호스트 모드입니다",
   "prof.switchHost": "마우스를 호스트 모드로 전환",

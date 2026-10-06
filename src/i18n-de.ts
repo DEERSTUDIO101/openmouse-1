@@ -569,6 +569,7 @@ export const de: Record<I18nKey, string> = {
   "prof.reload": "Profile neu laden",
   "prof.deleteReset": "Alle internen Profile löschen und zurücksetzen",
   "prof.restoreDefaults": "Alle internen Profile dauerhaft auf Logitech-Standardwerte zurücksetzen",
+  "prof.setUp": "Profile einrichten",
   "prof.openHost": "Host-Einstellungen öffnen",
   "prof.hostAlready": "Die Maus ist bereits im Host-Modus",
   "prof.switchHost": "Maus in den Host-Modus schalten",
