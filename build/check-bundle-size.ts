@@ -14,7 +14,10 @@ const BUDGET_BYTES: Record<string, number> = {
   // avatars), the animated day/night scene (sun/moon/star/cloud/bonfire
   // keyframes) and the credits-style quote widget push the measured CSS
   // aggregate to 183.7 kB.
-  ".css": 195_000,
+  // Raised to 210 kB after the protocol 0.26.0 device batch left the measured
+  // CSS aggregate at 194.2 kB — 843 bytes under the old 195 kB — so the next
+  // card or theme change would have tripped the check for no reviewable reason.
+  ".css": 210_000,
   // Raised from 510 kB for Bridge discovery, profile editing, automatic
   // reconnection, and recent device support, which have since grown further
   // with the supported-device page and MX Master remap controls. Preview
@@ -173,7 +176,14 @@ const BUDGET_BYTES: Record<string, number> = {
   // store) are pulled in through SUPPORTED_HID_FILTERS and the controllers,
   // and the shared UI gained the macro-card and profile-overview CSS. Measured
   // aggregate is 1,995.2 kB, leaving ~90 kB of headroom.
-  ".js": 2_085_000,
+  // Raised to 2,150 kB for the protocol 0.26.0 device batch: AJAZZ AJ179 PRO
+  // (#169), Redragon M690 PRO (#163, wired into the panel by #617), Lamzu Paro
+  // Aurora (#172), plus the X11-on-Bridge (#174), PRO X Wireless format 4
+  // (#175) and Logitech onboard-profile (#166/#589) work. Their protocol codecs
+  // arrive through bridge-hid's SUPPORTED_HID_FILTERS as well as the
+  // controllers. The measured aggregate is 2,084.2 kB, which left only 801
+  // bytes of headroom under the old 2,085 kB.
+  ".js": 2_150_000,
 };
 
 const ASSETS = join("dist", "assets");
