@@ -59,3 +59,20 @@ export function trackPress(trace: PressTrace, sample: DepthSample): PressTrace {
   if (trace.current.length === 0) return trace;
   return { current: [], last: [...trace.current, sample] };
 }
+
+/** Two presses of one button closer than this are a switch bouncing, not a finger. */
+export const BOUNCE_GAP_MS = 30;
+
+export interface BounceReport {
+  clicks: number;
+  /** Presses that came within BOUNCE_GAP_MS of the one before. */
+  bounces: number;
+  /** The longest such gap, or null when there was no bounce. */
+  longestGap: number | null;
+}
+
+/** Looks for bounce in the press times (ms) of one button. */
+export function bounceReport(times: readonly number[]): BounceReport {
+  const gaps = times.slice(1).map((time, index) => time - times[index]).filter((gap) => gap < BOUNCE_GAP_MS);
+  return { clicks: times.length, bounces: gaps.length, longestGap: gaps.length ? Math.max(...gaps) : null };
+}
