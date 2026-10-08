@@ -4299,8 +4299,10 @@ body { height: 100vh; overflow: hidden; }
   letter-spacing: 0.05em;
   color: var(--faint);
 }
-.profile-key-fields textarea {
+.profile-key-fields textarea,
+.profile-key-fields input[type="text"] {
   width: 100%;
+  box-sizing: border-box;
   padding: 0.6rem 0.7rem;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -4311,7 +4313,10 @@ body { height: 100vh; overflow: hidden; }
   line-height: 1.5;
   resize: vertical;
 }
-.profile-key-fields textarea:focus { outline: none; border-color: var(--accent); }
+.profile-key-fields textarea:focus,
+.profile-key-fields input[type="text"]:focus { outline: none; border-color: var(--accent); }
+.import-hits-actions { display: flex; gap: 0.5rem; }
+.delete-hits-confirm { border-color: color-mix(in srgb, var(--destructive) 55%, var(--border)); color: var(--destructive); }
 
 /* OpenMouse AI chat overlay + launcher button. */
 .ai-launcher {

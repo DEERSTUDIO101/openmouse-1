@@ -4,7 +4,6 @@ import { t, tp } from "../i18n";
 import type { InterfaceLocale } from "../interface-preferences";
 import type { AnalogTuning, AnalogTuningState, ControlSnapshot } from "../device/types";
 import {
-  decodeHitsCode,
   deleteHitsPreset,
   encodeHitsCode,
   loadHitsPresets,
@@ -15,6 +14,8 @@ import {
   type HitsPreset,
 } from "../hits-presets";
 import { BunnyHop } from "./cards/PerformanceCards";
+import { DeleteHitsPresetDialog } from "./DeleteHitsPresetDialog";
+import { ImportHitsCodeDialog } from "./ImportHitsCodeDialog";
 
 function SuperstrikeSteps({
   id,
@@ -89,10 +90,12 @@ function PressMeter({ actuation }: { actuation: [number, number] }): ReactNode {
 }
 
 // Saved setups for both buttons, in this browser, and a short code to share one.
-function HitsPresets({ state, limits }: { state: AnalogTuningState; limits: HitsLimits }): ReactNode {
+function HitsPresets({ state, limits, locale }: { state: AnalogTuningState; limits: HitsLimits; locale: InterfaceLocale }): ReactNode {
   const [presets, setPresets] = useState<HitsPreset[]>(() => loadHitsPresets(localStorage));
   const [selected, setSelected] = useState("");
   const [note, setNote] = useState("");
+  const [importOpen, setImportOpen] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   const values = (tuning: AnalogTuning): HitsButtonValues => ({
     actuation: tuning.actuation,
@@ -156,15 +159,22 @@ function HitsPresets({ state, limits }: { state: AnalogTuningState; limits: Hits
         type="button"
         className="icon-button"
         disabled={!selected}
-        onClick={() => {
-          if (!window.confirm(`Delete "${selected}"?`)) return;
-          setPresets(deleteHitsPreset(localStorage, selected));
-          setSelected("");
-          setNote("Deleted.");
-        }}
+        onClick={() => setDeleting(selected)}
       >
         Delete
       </button>
+      <DeleteHitsPresetDialog
+        name={deleting}
+        locale={locale}
+        onClose={() => setDeleting(null)}
+        onConfirm={() => {
+          if (deleting === null) return;
+          setPresets(deleteHitsPreset(localStorage, deleting));
+          setSelected("");
+          setNote(`Deleted "${deleting}".`);
+          setDeleting(null);
+        }}
+      />
       <button
         type="button"
         className="icon-button"
@@ -181,21 +191,21 @@ function HitsPresets({ state, limits }: { state: AnalogTuningState; limits: Hits
       <button
         type="button"
         className="icon-button"
-        onClick={() => {
-          const text = window.prompt("Paste a HITS code");
-          if (text === null) return;
-          const decoded = decodeHitsCode(text);
-          if (!decoded) {
-            setNote("That is not a valid HITS code.");
-            return;
-          }
-          if (!load(decoded, "the code")) return;
-          const name = window.prompt("Save it as a preset? Name it, or leave empty to just use it.");
-          if (name?.trim()) save({ name, ...decoded });
-        }}
+        onClick={() => setImportOpen(true)}
       >
         Import code
       </button>
+      <ImportHitsCodeDialog
+        open={importOpen}
+        limits={limits}
+        locale={locale}
+        onClose={() => setImportOpen(false)}
+        onImport={(decoded, name) => {
+          if (!load(decoded, "the code")) return;
+          if (name.trim()) save({ name, ...decoded });
+          setImportOpen(false);
+        }}
+      />
       {note ? <small className="superstrike-presets-note" role="status">{note}</small> : null}
     </div>
   );
@@ -310,7 +320,7 @@ export function Superstrike({ snapshot }: { snapshot: ControlSnapshot }): ReactN
       <article className="setting-card superstrike-tuning-card">
         <div className="setting-heading superstrike-tuning-heading"><div><h2>HITS Tuning</h2></div></div>
         <PressMeter actuation={[state.left.actuation, state.right.actuation]} />
-        <HitsPresets state={state} limits={tuning} />
+        <HitsPresets state={state} limits={tuning} locale={locale} />
         <div className="superstrike-tabs" role="tablist" aria-label="HITS tuning mode">
           {(["both", "independent"] as const).map((mode) => (
             <button
