@@ -416,7 +416,7 @@ export function RateSlider({
           );
         })}
       </div>
-      {hoursAt?.(options[selected] ?? 0) != null ? (
+      {selected !== null && hoursAt?.(options[selected] ?? 0) != null ? (
         <small className="rate-slider-hours">
           About {Math.round(hoursAt?.(options[selected] ?? 0) as number)} h per full charge at {options[selected]?.toLocaleString()} Hz
         </small>
