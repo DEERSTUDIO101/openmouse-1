@@ -1,4 +1,4 @@
-import { cachedBatterySamples, estimateBatteryTime, recordBatterySample, type BatteryMode } from "../battery-history";
+import { cachedBatterySamples, estimateBatteryTime, estimateFromRatedLife, ratedBattery, recordBatterySample, type BatteryMode } from "../battery-history";
 import { applyBridgeNativeSettings } from "../bridge";
 import {
   clientSupportScore,
@@ -1998,12 +1998,35 @@ export function batteryDetail(status: MouseStatus, locale: InterfaceLocale = "en
   if (status.batteryState === "Full") return withVoltage(t(locale, "bat.full"));
   const mode = batteryMode(status.batteryState);
   if (!mode) return withVoltage(batteryStateText(locale, status.batteryState));
+  const state = batteryStateText(locale, status.batteryState);
+  const estimate = batteryEstimateText(status, locale);
+  return withVoltage(estimate ? `${state} · ${estimate}` : state);
+}
+
+/**
+ * How long the battery should last or take to fill, from this device's own
+ * history once there is enough of it. Until then a mouse with a known rated
+ * life shows how long the charge would last at that rate.
+ */
+export function batteryEstimateParts(
+  status: MouseStatus,
+  locale: InterfaceLocale = "en",
+): { time: string; label: string } | null {
+  if (status.batteryPercent === null || status.batteryState === "Full") return null;
+  const mode = batteryMode(status.batteryState);
+  if (!mode) return null;
   const now = Date.now();
   const samples = cachedBatterySamples(localStorage, status.name, now);
   const estimate = estimateBatteryTime(samples, status.batteryPercent, mode, now);
-  const label = mode === "charging" ? t(locale, "bat.untilFull") : t(locale, "bat.remaining");
-  const state = batteryStateText(locale, status.batteryState);
-  return withVoltage(estimate ? `${state} · ${estimate} ${label}` : state);
+  if (estimate) return { time: estimate, label: mode === "charging" ? t(locale, "bat.untilFull") : t(locale, "bat.remaining") };
+  const ratedLife = mode === "discharging" ? ratedBattery(status.name) : null;
+  const rated = ratedLife ? estimateFromRatedLife(status.batteryPercent, ratedLife, status.pollingRateHz) : null;
+  return rated ? { time: rated, label: t(locale, "bat.remainingRated") } : null;
+}
+
+export function batteryEstimateText(status: MouseStatus, locale: InterfaceLocale = "en"): string | null {
+  const parts = batteryEstimateParts(status, locale);
+  return parts ? `${parts.time} ${parts.label}` : null;
 }
 
 function diagnosticErrorMessage(error: unknown, fallback: string): string {
@@ -3160,6 +3183,34 @@ export function setAnalogTuningValue(
 ): void {
   analogTuning = { ...analogTuning, [group]: { ...analogTuning[group], [setting]: value } };
   emit();
+  // A HITS step is only on-screen state until it is staged. With instant flash
+  // on, stage it now, as every other setting does; otherwise it waits for Apply.
+  if (!interfacePreferences.instantFlash) return;
+  if (group === "both") applyLogitechAnalogButtons();
+  else applyLogitechAnalogButton(group === "left" ? 0 : 1);
+}
+
+/**
+ * Loads a preset into the HITS card. Equal buttons show on the Both tab, unequal
+ * ones on Independent. With instant flash on it is written straight away (both
+ * buttons staged together, so one profile write); otherwise it waits for Apply.
+ */
+export function loadAnalogPreset(left: AnalogTuning, right: AnalogTuning): void {
+  const same = left.actuation === right.actuation
+    && left.rapidTrigger === right.rapidTrigger
+    && left.haptics === right.haptics
+    && left.rapidTriggerEnabled === right.rapidTriggerEnabled;
+  analogTuning = same
+    ? { ...analogTuning, mode: "both", left: { ...left }, right: { ...right }, both: { ...left } }
+    : { ...analogTuning, mode: "independent", left: { ...left }, right: { ...right } };
+  emit();
+  if (!interfacePreferences.instantFlash) return;
+  if (same) {
+    applyLogitechAnalogButtons();
+  } else {
+    applyLogitechAnalogButton(0);
+    applyLogitechAnalogButton(1);
+  }
 }
 
 /**

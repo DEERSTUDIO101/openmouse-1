@@ -203,6 +203,7 @@ export const de: Record<I18nKey, string> = {
   "bat.full": "Vollständig geladen",
   "bat.untilFull": "bis vollständig geladen",
   "bat.remaining": "verbleibend",
+  "bat.remainingRated": "verbleibend (laut Herstellerangabe)",
   "bat.charging": "Lädt",
   "bat.chargingSlowly": "Lädt langsam",
   "bat.almostFull": "Fast voll",
