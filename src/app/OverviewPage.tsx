@@ -138,6 +138,7 @@ function DeviceShowcase({ snapshot }: {
   if (!status) return null;
   const locale = snapshot.preferences.locale;
   const image = snapshot.deviceArtwork;
+  const batteryEstimate = control.batteryEstimateParts(status, locale);
   const [imageFailed, setImageFailed] = useState(false);
   const [artSize, setArtSize] = useState<{ w: number; h: number } | null>(null);
 
@@ -209,6 +210,11 @@ function DeviceShowcase({ snapshot }: {
             <span className="device-showcase-status-item">
               <BatteryIcon percent={status.batteryPercent} state={status.batteryState} />
               <span className="device-showcase-status-value">{status.batteryPercent}%</span>
+              {batteryEstimate ? (
+                <span className="device-showcase-status-muted" title={`${batteryEstimate.time} ${batteryEstimate.label}`}>
+                  {batteryEstimate.time}
+                </span>
+              ) : null}
             </span>
           </>
         ) : null}
@@ -337,6 +343,7 @@ export function DeviceShowcaseSidebar({ snapshot }: { snapshot: ControlSnapshot 
   const showButtonMarkers = snapshot.workspaceTab === "buttons"
     && isNoirKsnakeStatus(status)
     && status.buttonMappings != null;
+  const batteryEstimate = control.batteryEstimateParts(status, locale);
 
   return (
     <div className="showcase-sidebar">
@@ -411,6 +418,9 @@ export function DeviceShowcaseSidebar({ snapshot }: { snapshot: ControlSnapshot 
             {" · "}
             <BatteryIcon percent={status.batteryPercent} state={status.batteryState} />
             {status.batteryPercent}%
+            {batteryEstimate ? (
+              <span title={`${batteryEstimate.time} ${batteryEstimate.label}`}>{" · "}{batteryEstimate.time}</span>
+            ) : null}
           </span>
         ) : null}
       </div>

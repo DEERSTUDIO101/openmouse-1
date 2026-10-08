@@ -202,6 +202,7 @@ export const ar: Record<I18nKey, string> = {
   "bat.full": "مشحون بالكامل",
   "bat.untilFull": "حتى الامتلاء",
   "bat.remaining": "متبقٍ",
+  "bat.remainingRated": "متبقٍ (حسب العمر المقدّر)",
   "bat.charging": "جارٍ الشحن",
   "bat.chargingSlowly": "شحن بطيء",
   "bat.almostFull": "شبه ممتلئ",

@@ -203,6 +203,7 @@ export const ja: Record<I18nKey, string> = {
   "bat.full": "満充電",
   "bat.untilFull": "満充電まで",
   "bat.remaining": "残り",
+  "bat.remainingRated": "残り（公称値）",
   "bat.charging": "充電中",
   "bat.chargingSlowly": "低速充電中",
   "bat.almostFull": "ほぼ満充電",
