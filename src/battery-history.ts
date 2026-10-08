@@ -138,22 +138,74 @@ export function estimateBatteryTime(
   return formatEstimate(remainingPercent / (change / elapsed));
 }
 
-/**
- * Manufacturer battery life, in hours, for mice that report a percent and
- * nothing else. A rough stand-in until real usage history gives a better figure.
- * Keyed by the device name without spaces, upper-cased.
- */
-const RATED_BATTERY_HOURS: Record<string, number> = {
-  PROX2SUPERSTRIKE: 90,
-  PROX3SUPERSTRIKE: 135,
-};
-
-export function ratedBatteryHours(deviceName: string): number | null {
-  return RATED_BATTERY_HOURS[deviceName.replace(/\s+/g, "").toUpperCase()] ?? null;
+/** Power draw in mW at one polling rate: the sensor and electronics, and the radio. */
+interface RatePower {
+  system: number;
+  signal: number;
 }
 
-/** Time left if the battery drains at the rated rate, in the same format as estimateBatteryTime. */
-export function estimateFromRatedLife(percent: number, ratedHours: number): string | null {
-  if (!(percent > 0) || !(ratedHours > 0)) return null;
-  return formatEstimate((percent / 100) * ratedHours * 60 * 60 * 1000);
+interface RatedBattery {
+  /** The manufacturer's quoted battery life. */
+  hours: number;
+  /** The polling rate that quote is for. Only needed with powerByRateHz. */
+  ratedRateHz?: number;
+  /** Draw per polling rate, as G HUB shows it. Lets the estimate follow the rate in use. */
+  powerByRateHz?: Record<number, RatePower>;
+}
+
+/**
+ * Manufacturer battery life for mice that report a percent and nothing else. A
+ * rough stand-in until real usage history gives a better figure. Keyed by the
+ * device name without spaces, upper-cased.
+ *
+ * The PRO X 3 draw figures are what G HUB displays. They are not read from the
+ * mouse: a capture of G HUB stepping through every rate shows only the set-rate
+ * command and no power values, so G HUB has them built in. The 135 h quote is
+ * taken to be at 1000 Hz, which makes the cell about 1080 mWh (8 mW for 135 h).
+ */
+const RATED_BATTERY: Record<string, RatedBattery> = {
+  PROX2SUPERSTRIKE: { hours: 90 },
+  PROX3SUPERSTRIKE: {
+    hours: 135,
+    ratedRateHz: 1000,
+    powerByRateHz: {
+      125: { system: 4, signal: 1 },
+      250: { system: 4, signal: 1 },
+      500: { system: 4, signal: 2 },
+      1000: { system: 4, signal: 4 },
+      2000: { system: 5, signal: 9 },
+      4000: { system: 7, signal: 10 },
+      8000: { system: 12, signal: 20 },
+    },
+  },
+};
+
+export function ratedBattery(deviceName: string): RatedBattery | null {
+  return RATED_BATTERY[deviceName.replace(/\s+/g, "").toUpperCase()] ?? null;
+}
+
+/**
+ * Hours a full charge lasts at the given polling rate: the rated hours scaled by
+ * how much more or less the mouse draws at that rate than at the rated one.
+ * Without a power table for the model, or the rate, it is just the rated hours.
+ */
+export function ratedFullChargeHours(battery: RatedBattery, pollingRateHz?: number | null): number {
+  const table = battery.powerByRateHz;
+  const at = (hz: number | null | undefined): number | null => {
+    const power = hz == null ? undefined : table?.[hz];
+    return power ? power.system + power.signal : null;
+  };
+  const rated = at(battery.ratedRateHz);
+  const current = at(pollingRateHz);
+  return rated && current ? (battery.hours * rated) / current : battery.hours;
+}
+
+/** Time left on the rated figure, in the same format as estimateBatteryTime. */
+export function estimateFromRatedLife(
+  percent: number,
+  battery: RatedBattery,
+  pollingRateHz?: number | null,
+): string | null {
+  if (!(percent > 0) || !(battery.hours > 0)) return null;
+  return formatEstimate((percent / 100) * ratedFullChargeHours(battery, pollingRateHz) * 60 * 60 * 1000);
 }

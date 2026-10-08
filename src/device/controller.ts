@@ -1,4 +1,4 @@
-import { cachedBatterySamples, estimateBatteryTime, estimateFromRatedLife, ratedBatteryHours, recordBatterySample, type BatteryMode } from "../battery-history";
+import { cachedBatterySamples, estimateBatteryTime, estimateFromRatedLife, ratedBattery, recordBatterySample, type BatteryMode } from "../battery-history";
 import { applyBridgeNativeSettings } from "../bridge";
 import {
   clientSupportScore,
@@ -2019,8 +2019,8 @@ export function batteryEstimateParts(
   const samples = cachedBatterySamples(localStorage, status.name, now);
   const estimate = estimateBatteryTime(samples, status.batteryPercent, mode, now);
   if (estimate) return { time: estimate, label: mode === "charging" ? t(locale, "bat.untilFull") : t(locale, "bat.remaining") };
-  const ratedHours = mode === "discharging" ? ratedBatteryHours(status.name) : null;
-  const rated = ratedHours ? estimateFromRatedLife(status.batteryPercent, ratedHours) : null;
+  const ratedLife = mode === "discharging" ? ratedBattery(status.name) : null;
+  const rated = ratedLife ? estimateFromRatedLife(status.batteryPercent, ratedLife, status.pollingRateHz) : null;
   return rated ? { time: rated, label: t(locale, "bat.remainingRated") } : null;
 }
 
