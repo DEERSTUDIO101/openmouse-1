@@ -3,6 +3,8 @@ import * as control from "../device/controller";
 import type { ControlSnapshot } from "../device/types";
 import { buttonMapLayoutFor, type ButtonSpot } from "../logitech-button-map";
 import { COMMAND_SECTIONS, describeAssignment, isAssigned, type CommandEntry } from "../logitech-commands";
+import { connectionText } from "../i18n";
+import { BatteryIcon } from "./ui";
 
 type Layer = "primary" | "g-shift";
 
@@ -73,7 +75,16 @@ export function ButtonMap({ snapshot }: { snapshot: ControlSnapshot }): ReactNod
   return (
     <div id="logitech-button-map">
       <article className="setting-card button-map-card">
-        <div className="setting-heading"><div><p>BUTTONS</p><h2>Button assignments</h2></div></div>
+        <div className="setting-heading button-map-heading">
+          <div><p>BUTTONS</p><h2>Button assignments</h2></div>
+          <div className="button-map-status" aria-label="Device status">
+            <strong>{status.name}</strong>
+            {status.connectionType ? <span>{connectionText(snapshot.preferences.locale, status.connectionType)}</span> : null}
+            {status.batteryPercent !== null ? (
+              <span><BatteryIcon percent={status.batteryPercent} state={status.batteryState} />{status.batteryPercent}%</span>
+            ) : null}
+          </div>
+        </div>
         <div className="button-map-body">
           <aside className="button-map-commands" aria-label="Commands">
             <input

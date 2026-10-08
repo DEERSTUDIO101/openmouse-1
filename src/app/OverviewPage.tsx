@@ -649,12 +649,14 @@ export function Workspace({
           className={[
             "performance-layout device-data",
             slotsAvailable || stagesAvailable ? "has-dpi-slots" : "",
+            // The button map has its own mouse, so the side panel's would be a second one.
+            showButtonMap ? "has-no-sidebar" : "",
           ].filter(Boolean).join(" ")}
           data-workspace-host
           role="tabpanel"
           aria-label="Mouse settings"
         >
-          {device ? (
+          {device && !showButtonMap ? (
             <aside className="performance-sidebar">
               <DeviceShowcaseSidebar snapshot={snapshot} />
             </aside>

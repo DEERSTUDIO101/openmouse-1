@@ -1398,6 +1398,7 @@ nav { display: grid; gap: .3rem; margin-top: 1.4rem; }
 }
 /* The HITS card has a legacy order for another layout; here it comes first. */
 .performance-main > #logitech-analog-button-settings { order: -1; }
+.performance-layout.has-no-sidebar { grid-template-columns: minmax(0, 1fr); }
 .performance-sidebar {
   position: sticky;
   top: .75rem;
