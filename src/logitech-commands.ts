@@ -165,9 +165,9 @@ const NO_COMMAND = new Set(["-", "Disabled", "Pending"]);
 const isOpaque = (text: string): boolean => text === "Macro" || text === "Custom" || /-key macro$/.test(text);
 
 /**
- * Plain-words warnings about a button layout: two buttons that do the same thing,
- * and Back or Forward that nothing is set to. `buttons` is every button with the
- * text it shows.
+ * Plain-words warnings about a button layout: two buttons that do the same thing.
+ * (Back or Forward left unset is not flagged: a macro or shortcut may stand in for
+ * them, and the check cannot tell.) `buttons` is every button with the text it shows.
  */
 export function conflictHints(buttons: readonly { label: string; text: string }[]): string[] {
   const hints: string[] = [];
@@ -178,11 +178,6 @@ export function conflictHints(buttons: readonly { label: string; text: string }[
   }
   for (const [text, labels] of seen) {
     if (labels.length > 1) hints.push(`${labels.join(" and ")} both do ${text}.`);
-  }
-  // A macro or custom record on any button may well be standing in for Back or Forward.
-  const hasOpaque = buttons.some(({ text }) => isOpaque(text));
-  for (const wanted of ["Back", "Forward"]) {
-    if (!seen.has(wanted) && !hasOpaque) hints.push(`Nothing is set to ${wanted}.`);
   }
   return hints;
 }

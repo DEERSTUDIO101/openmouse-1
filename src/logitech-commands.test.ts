@@ -69,23 +69,12 @@ test("a macro record is described as a macro", () => {
   assert.equal(describeAssignment("Custom", [0x00, 0x04, 0x07, 0x00]), "Macro");
 });
 
-test("two buttons doing the same thing, and Back or Forward left unassigned, are called out", () => {
+test("two buttons doing the same thing are called out, and nothing else is", () => {
   const layout = (...texts: string[]) => ["Primary click", "Secondary click", "Middle click", "Forward", "Back"]
     .map((label, index) => ({ label, text: texts[index] }));
   assert.deepEqual(conflictHints(layout("Left click", "Right click", "Middle click", "Forward", "Back")), []);
-  assert.deepEqual(
-    conflictHints(layout("Left click", "Right click", "Middle click", "Back", "Back")),
-    ["Forward and Back both do Back.", "Nothing is set to Forward."],
-  );
-  assert.deepEqual(
-    conflictHints(layout("Left click", "Right click", "Disabled", "Disabled", "Disabled")),
-    ["Nothing is set to Back.", "Nothing is set to Forward."],
-  );
-});
-
-test("a macro on a button is not reported as nothing, and two macros are not duplicates", () => {
-  const layout = (...texts: string[]) => ["Primary click", "Secondary click", "Middle click", "Forward", "Back"]
-    .map((label, index) => ({ label, text: texts[index] }));
-  assert.deepEqual(conflictHints(layout("Left click", "Right click", "Middle click", "Forward", "Macro")), []);
-  assert.deepEqual(conflictHints(layout("Left click", "Right click", "Macro", "2-key macro", "Macro")), []);
+  assert.deepEqual(conflictHints(layout("Left click", "Right click", "Middle click", "Back", "Back")), ["Forward and Back both do Back."]);
+  assert.deepEqual(conflictHints(layout("Left click", "Right click", "Disabled", "Disabled", "Disabled")), []);
+  // A macro, a shortcut or a custom record never produces a hint of its own.
+  assert.deepEqual(conflictHints(layout("Left click", "Right click", "Macro", "2-key macro", "Ctrl + C")), []);
 });
