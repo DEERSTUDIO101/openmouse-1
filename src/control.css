@@ -5125,3 +5125,17 @@ body { height: 100vh; overflow: hidden; }
 [dir="rtl"] .app-sidebar-collapse-toggle:hover { transform: translateY(-50%) translateX(-2px); }
 [dir="rtl"] .egg-collapsible summary i,
 [dir="rtl"] .egg-experimental summary i { transform: rotate(-45deg); }
+
+/* HITS speed test */
+.hits-test-dialog { width: min(52rem, 94vw); }
+.hits-test-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 1rem; align-items: stretch; }
+.hits-test-side { display: grid; gap: .8rem; align-content: start; min-width: 0; }
+.hits-test-actuation { display: flex; align-items: center; justify-content: space-between; gap: .8rem; }
+.hits-test-actuation > div { display: inline-flex; align-items: center; gap: .5rem; }
+.hits-test-actuation button { width: 1.8rem; height: 1.8rem; border: 1px solid var(--border); border-radius: 6px; background: var(--input); color: var(--text); }
+.hits-test-actuation button:disabled { opacity: .4; cursor: not-allowed; }
+.hits-test-rounds { display: grid; gap: .25rem; margin: 0; padding-left: 1.1rem; color: var(--text-soft); font-size: .7rem; }
+.hits-test-area { min-height: 16rem; padding: 1rem; border: 2px solid var(--ui-accent); border-radius: 12px; background: var(--surface-raised); color: var(--text-strong); font-size: 1.3rem; font-weight: 750; text-align: center; user-select: none; cursor: pointer; }
+.hits-test-area.is-wait { border-color: var(--warning); background: color-mix(in srgb, var(--warning) 22%, var(--surface-raised)); }
+.hits-test-area.is-go { border-color: var(--ui-accent); background: var(--ui-accent); color: var(--ui-accent-ink); }
+@media (max-width: 720px) { .hits-test-body { grid-template-columns: minmax(0, 1fr); } }

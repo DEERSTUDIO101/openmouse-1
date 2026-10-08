@@ -17,6 +17,7 @@ import {
 } from "../hits-presets";
 import { BunnyHop } from "./cards/PerformanceCards";
 import { DeleteHitsPresetDialog } from "./DeleteHitsPresetDialog";
+import { HitsTestDialog } from "./HitsTestDialog";
 import { SaveHitsPresetDialog } from "./SaveHitsPresetDialog";
 import { ImportHitsCodeDialog } from "./ImportHitsCodeDialog";
 
@@ -93,12 +94,13 @@ function PressMeter({ actuation }: { actuation: [number, number] }): ReactNode {
 }
 
 // Saved setups for both buttons, in this browser, and a short code to share one.
-function HitsPresets({ state, limits, locale }: { state: AnalogTuningState; limits: HitsLimits; locale: InterfaceLocale }): ReactNode {
+function HitsPresets({ state, limits, locale, canAdjust }: { state: AnalogTuningState; limits: HitsLimits; locale: InterfaceLocale; canAdjust: boolean }): ReactNode {
   const [presets, setPresets] = useState<HitsPreset[]>(() => loadHitsPresets(localStorage));
   const [selected, setSelected] = useState("");
   const [note, setNote] = useState("");
   const [importOpen, setImportOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
 
   const values = (tuning: AnalogTuning): HitsButtonValues => ({
@@ -231,6 +233,18 @@ function HitsPresets({ state, limits, locale }: { state: AnalogTuningState; limi
       >
         Import code
       </button>
+      <button type="button" className="icon-button" onClick={() => setTesting(true)}>
+        Test
+      </button>
+      <HitsTestDialog
+        open={testing}
+        locale={locale}
+        actuation={state.mode === "both" ? [state.both.actuation, state.both.actuation] : [state.left.actuation, state.right.actuation]}
+        maxActuation={limits.maxActuation}
+        canAdjust={canAdjust}
+        onAdjust={(side, value) => control.setAnalogTuningValue(state.mode === "both" ? "both" : side === 0 ? "left" : "right", "actuation", value)}
+        onClose={() => setTesting(false)}
+      />
       <ImportHitsCodeDialog
         open={importOpen}
         limits={limits}
@@ -356,7 +370,7 @@ export function Superstrike({ snapshot }: { snapshot: ControlSnapshot }): ReactN
       <article className="setting-card superstrike-tuning-card">
         <div className="setting-heading superstrike-tuning-heading"><div><h2>HITS Tuning</h2></div></div>
         <PressMeter actuation={[state.left.actuation, state.right.actuation]} />
-        <HitsPresets state={state} limits={tuning} locale={locale} />
+        <HitsPresets state={state} limits={tuning} locale={locale} canAdjust={!showApply} />
         <div className="superstrike-tabs" role="tablist" aria-label="HITS tuning mode">
           {(["both", "independent"] as const).map((mode) => (
             <button
