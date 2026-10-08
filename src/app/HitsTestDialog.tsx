@@ -2,9 +2,9 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import * as control from "../device/controller";
 import { t } from "../i18n";
 import type { InterfaceLocale } from "../interface-preferences";
-import { averageMs, CONVENTIONAL_STEP, savedMs, stepTimes, type DepthSample } from "../hits-test";
+import { CONVENTIONAL_STEP, savedMs, stepTimes, type DepthSample } from "../hits-test";
 
-const ROUNDS = 5;
+const ROUNDS = 1;
 // After the press, wait for the rest of its depth reports before comparing.
 const SETTLE_MS = 300;
 
@@ -110,7 +110,6 @@ export function HitsTestDialog({
     }
   };
 
-  const average = averageMs(rounds.map((round) => round.saved));
   const label = phase === "idle" ? (note || "Click here to start")
     : phase === "wait" ? "Wait for blue…"
       : phase === "go" ? "Click now!"
@@ -166,13 +165,6 @@ export function HitsTestDialog({
               </div>
             </div>
             {!canAdjust ? <small className="setting-description">Turn on Instant flash to change the actuation here.</small> : null}
-            <ol className="hits-test-rounds" aria-label="Results">
-              {rounds.map((round, index) => (
-                <li key={index}>
-                  {ms(round.reaction)} reaction{round.saved === null ? ", too shallow to compare" : `, ${signed(round.saved)} vs a normal switch`}
-                </li>
-              ))}
-            </ol>
           </div>
           <button
             type="button"
@@ -190,7 +182,6 @@ export function HitsTestDialog({
                   <b>{hitsTime === null ? "-" : ms(hitsTime)}</b>
                   <small>Conventional switch</small>
                   <b>{conventionalTime === null ? "-" : ms(conventionalTime)}</b>
-                  {average !== null && rounds.length > 1 ? <small>Average over {rounds.length} clicks: {signed(average)}</small> : null}
                 </span>
                 <span className="hits-test-ladder" aria-label="Time to reach each step">
                   {Array.from({ length: 10 }, (_, index) => index + 1).map((step) => (
