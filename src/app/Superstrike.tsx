@@ -2,7 +2,18 @@ import { useEffect, useState, type ReactNode } from "react";
 import * as control from "../device/controller";
 import { t, tp } from "../i18n";
 import type { InterfaceLocale } from "../interface-preferences";
-import type { AnalogTuning, ControlSnapshot } from "../device/types";
+import type { AnalogTuning, AnalogTuningState, ControlSnapshot } from "../device/types";
+import {
+  decodeHitsCode,
+  deleteHitsPreset,
+  encodeHitsCode,
+  loadHitsPresets,
+  presetFits,
+  saveHitsPreset,
+  type HitsButtonValues,
+  type HitsLimits,
+  type HitsPreset,
+} from "../hits-presets";
 import { BunnyHop } from "./cards/PerformanceCards";
 
 function SuperstrikeSteps({
@@ -73,6 +84,119 @@ function PressMeter({ actuation }: { actuation: [number, number] }): ReactNode {
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+// Saved setups for both buttons, in this browser, and a short code to share one.
+function HitsPresets({ state, limits }: { state: AnalogTuningState; limits: HitsLimits }): ReactNode {
+  const [presets, setPresets] = useState<HitsPreset[]>(() => loadHitsPresets(localStorage));
+  const [selected, setSelected] = useState("");
+  const [note, setNote] = useState("");
+
+  const values = (tuning: AnalogTuning): HitsButtonValues => ({
+    actuation: tuning.actuation,
+    rapidTrigger: tuning.rapidTrigger,
+    haptics: tuning.haptics,
+    rapidTriggerEnabled: tuning.rapidTriggerEnabled !== false,
+  });
+  const current = (): Pick<HitsPreset, "left" | "right"> => state.mode === "both"
+    ? { left: values(state.both), right: values(state.both) }
+    : { left: values(state.left), right: values(state.right) };
+
+  const load = (preset: Pick<HitsPreset, "left" | "right">, label: string): boolean => {
+    if (!presetFits(preset, limits)) {
+      setNote("That preset has values this mouse cannot do.");
+      return false;
+    }
+    control.loadAnalogPreset({ ...preset.left }, { ...preset.right });
+    setNote(`Loaded ${label}.`);
+    return true;
+  };
+
+  const save = (preset: HitsPreset): void => {
+    const next = saveHitsPreset(localStorage, preset);
+    if (!next) {
+      setNote("Could not save that preset.");
+      return;
+    }
+    setPresets(next);
+    setSelected(preset.name.trim().slice(0, 40));
+  };
+
+  return (
+    <div className="superstrike-presets">
+      <select
+        aria-label="HITS presets"
+        value={selected}
+        onChange={(event) => {
+          const name = event.currentTarget.value;
+          setSelected(name);
+          const preset = presets.find((entry) => entry.name === name);
+          if (preset) load(preset, `"${preset.name}"`);
+        }}
+      >
+        <option value="">Presets…</option>
+        {presets.map((preset) => <option key={preset.name} value={preset.name}>{preset.name}</option>)}
+      </select>
+      <button
+        type="button"
+        className="icon-button"
+        onClick={() => {
+          const name = window.prompt("Name this preset");
+          if (name?.trim()) {
+            save({ name, ...current() });
+            setNote(`Saved "${name.trim().slice(0, 40)}".`);
+          }
+        }}
+      >
+        Save
+      </button>
+      <button
+        type="button"
+        className="icon-button"
+        disabled={!selected}
+        onClick={() => {
+          if (!window.confirm(`Delete "${selected}"?`)) return;
+          setPresets(deleteHitsPreset(localStorage, selected));
+          setSelected("");
+          setNote("Deleted.");
+        }}
+      >
+        Delete
+      </button>
+      <button
+        type="button"
+        className="icon-button"
+        onClick={() => {
+          const code = encodeHitsCode(current());
+          navigator.clipboard?.writeText(code).then(
+            () => setNote("Code copied."),
+            () => window.prompt("Copy this code", code),
+          ) ?? window.prompt("Copy this code", code);
+        }}
+      >
+        Copy code
+      </button>
+      <button
+        type="button"
+        className="icon-button"
+        onClick={() => {
+          const text = window.prompt("Paste a HITS code");
+          if (text === null) return;
+          const decoded = decodeHitsCode(text);
+          if (!decoded) {
+            setNote("That is not a valid HITS code.");
+            return;
+          }
+          if (!load(decoded, "the code")) return;
+          const name = window.prompt("Save it as a preset? Name it, or leave empty to just use it.");
+          if (name?.trim()) save({ name, ...decoded });
+        }}
+      >
+        Import code
+      </button>
+      {note ? <small className="superstrike-presets-note" role="status">{note}</small> : null}
     </div>
   );
 }
@@ -186,6 +310,7 @@ export function Superstrike({ snapshot }: { snapshot: ControlSnapshot }): ReactN
       <article className="setting-card superstrike-tuning-card">
         <div className="setting-heading superstrike-tuning-heading"><div><h2>HITS Tuning</h2></div></div>
         <PressMeter actuation={[state.left.actuation, state.right.actuation]} />
+        <HitsPresets state={state} limits={tuning} />
         <div className="superstrike-tabs" role="tablist" aria-label="HITS tuning mode">
           {(["both", "independent"] as const).map((mode) => (
             <button

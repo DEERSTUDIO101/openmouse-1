@@ -3168,6 +3168,29 @@ export function setAnalogTuningValue(
 }
 
 /**
+ * Loads a preset into the HITS card. Equal buttons show on the Both tab, unequal
+ * ones on Independent. With instant flash on it is written straight away (both
+ * buttons staged together, so one profile write); otherwise it waits for Apply.
+ */
+export function loadAnalogPreset(left: AnalogTuning, right: AnalogTuning): void {
+  const same = left.actuation === right.actuation
+    && left.rapidTrigger === right.rapidTrigger
+    && left.haptics === right.haptics
+    && left.rapidTriggerEnabled === right.rapidTriggerEnabled;
+  analogTuning = same
+    ? { ...analogTuning, mode: "both", left: { ...left }, right: { ...right }, both: { ...left } }
+    : { ...analogTuning, mode: "independent", left: { ...left }, right: { ...right } };
+  emit();
+  if (!interfacePreferences.instantFlash) return;
+  if (same) {
+    applyLogitechAnalogButtons();
+  } else {
+    applyLogitechAnalogButton(0);
+    applyLogitechAnalogButton(1);
+  }
+}
+
+/**
  * Both buttons' HITS changes share one writer, so a Both-buttons apply is one
  * profile write instead of two: the runner calls only the last change of a group.
  */

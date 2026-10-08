@@ -94,6 +94,11 @@
   #egg-button-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
+#logitech-analog-button-settings .superstrike-presets { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin: 0 0 .8rem; }
+#logitech-analog-button-settings .superstrike-presets select { padding: .34rem .5rem; border: 1px solid var(--border); border-radius: 7px; background: var(--input); color: var(--text-soft); font: 650 .62rem var(--font-mono); }
+#logitech-analog-button-settings .superstrike-presets .icon-button { padding: .34rem .7rem; font-size: .66rem; font-weight: 600; white-space: nowrap; }
+#logitech-analog-button-settings .superstrike-presets .icon-button:disabled { opacity: .45; cursor: not-allowed; }
+#logitech-analog-button-settings .superstrike-presets-note { color: var(--faint); font-size: .62rem; }
 :is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-press-meters { display: grid; gap: .35rem; margin: .2rem 0 .8rem; }
 :is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-press-meter { display: grid; grid-template-columns: 2.6rem 1fr; align-items: center; gap: .6rem; font: 650 .62rem var(--font-mono); color: var(--text-soft); }
 :is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-press-meter > div { display: grid; grid-template-columns: repeat(10, 1fr); gap: .2rem; }
