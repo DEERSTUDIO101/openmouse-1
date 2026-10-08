@@ -9,6 +9,7 @@ import {
   encodeHitsCode,
   loadHitsPresets,
   presetFits,
+  presetMatches,
   saveHitsPreset,
   type HitsPreset,
 } from "./hits-presets.ts";
@@ -103,4 +104,12 @@ test("the built-in presets are valid for the narrowest mouse and survive a share
     assert.equal(presetFits(preset, narrow), true, preset.name);
     assert.deepEqual(decodeHitsCode(encodeHitsCode(preset)), { left: preset.left, right: preset.right });
   }
+});
+
+test("a preset matches what is on the mouse, ignoring a rapid trigger step that is off", () => {
+  const side = (rapidTriggerEnabled: boolean, rapidTrigger: number) => ({ actuation: 5, rapidTrigger, rapidTriggerEnabled, haptics: 3 });
+  const preset = { left: side(false, 2), right: side(false, 2) };
+  assert.equal(presetMatches(preset, { left: side(false, 1), right: side(false, 4) }), true);
+  assert.equal(presetMatches({ left: side(true, 2), right: side(true, 2) }, { left: side(true, 1), right: side(true, 2) }), false);
+  assert.equal(presetMatches(preset, { left: { ...side(false, 2), actuation: 6 }, right: side(false, 2) }), false);
 });

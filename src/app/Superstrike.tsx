@@ -9,6 +9,7 @@ import {
   BUILT_IN_HITS_PRESETS,
   PRO_HITS_PRESETS,
   presetFits,
+  presetMatches,
   saveHitsPreset,
   type HitsButtonValues,
   type HitsLimits,
@@ -94,7 +95,6 @@ function PressMeter({ actuation }: { actuation: [number, number] }): ReactNode {
 // Saved setups for both buttons, in this browser, and a short code to share one.
 function HitsPresets({ state, limits, locale, canAdjust }: { state: AnalogTuningState; limits: HitsLimits; locale: InterfaceLocale; canAdjust: boolean }): ReactNode {
   const [presets, setPresets] = useState<HitsPreset[]>(() => loadHitsPresets(localStorage));
-  const [selected, setSelected] = useState("");
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
@@ -109,6 +109,14 @@ function HitsPresets({ state, limits, locale, canAdjust }: { state: AnalogTuning
   const current = (): Pick<HitsPreset, "left" | "right"> => state.mode === "both"
     ? { left: values(state.both), right: values(state.both) }
     : { left: values(state.left), right: values(state.right) };
+
+  // The dropdown follows what is on the mouse, so it still names the preset after a refresh
+  // and drops back to "Presets…" once the values are changed by hand.
+  const now = current();
+  const matches = (preset: Pick<HitsPreset, "left" | "right">): boolean => presetMatches(preset, now);
+  const matchedUser = presets.find(matches);
+  const matchedBuiltIn = [...BUILT_IN_HITS_PRESETS, ...PRO_HITS_PRESETS].find(matches);
+  const selected = matchedUser ? matchedUser.name : matchedBuiltIn ? `builtin:${matchedBuiltIn.name}` : "";
 
   const load = (preset: Pick<HitsPreset, "left" | "right">, label: string): boolean => {
     if (!presetFits(preset, limits)) {
@@ -127,7 +135,6 @@ function HitsPresets({ state, limits, locale, canAdjust }: { state: AnalogTuning
       return;
     }
     setPresets(next);
-    setSelected(preset.name.trim().slice(0, 40));
   };
 
   return (
@@ -137,7 +144,6 @@ function HitsPresets({ state, limits, locale, canAdjust }: { state: AnalogTuning
         value={selected}
         onChange={(event) => {
           const name = event.currentTarget.value;
-          setSelected(name);
           const builtIn = [...BUILT_IN_HITS_PRESETS, ...PRO_HITS_PRESETS].find((entry) => `builtin:${entry.name}` === name);
           const preset = builtIn ?? presets.find((entry) => entry.name === name);
           if (preset) load(preset, `"${preset.name}"`);
@@ -165,7 +171,6 @@ function HitsPresets({ state, limits, locale, canAdjust }: { state: AnalogTuning
         className="icon-button"
         onClick={() => {
           const defaults = BUILT_IN_HITS_PRESETS.find((preset) => preset.name === "Default")!;
-          setSelected("");
           load(defaults, "Default (reset)");
         }}
       >
@@ -205,7 +210,6 @@ function HitsPresets({ state, limits, locale, canAdjust }: { state: AnalogTuning
         onConfirm={() => {
           if (deleting === null) return;
           setPresets(deleteHitsPreset(localStorage, deleting));
-          setSelected("");
           setNote(`Deleted "${deleting}".`);
           setDeleting(null);
         }}

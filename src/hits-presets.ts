@@ -63,6 +63,18 @@ function inRange(values: HitsButtonValues | undefined, limits: HitsLimits): bool
     && typeof values.rapidTriggerEnabled === "boolean";
 }
 
+/**
+ * True when two setups are the same on the mouse. A rapid trigger step that is
+ * switched off does nothing, so it is not compared.
+ */
+export function presetMatches(a: Pick<HitsPreset, "left" | "right">, b: Pick<HitsPreset, "left" | "right">): boolean {
+  const side = (x: HitsButtonValues, y: HitsButtonValues) => x.actuation === y.actuation
+    && x.haptics === y.haptics
+    && x.rapidTriggerEnabled === y.rapidTriggerEnabled
+    && (!x.rapidTriggerEnabled || x.rapidTrigger === y.rapidTrigger);
+  return side(a.left, b.left) && side(a.right, b.right);
+}
+
 /** True when every value is inside what the mouse reports it can do. */
 export function presetFits(preset: Pick<HitsPreset, "left" | "right">, limits: HitsLimits): boolean {
   return inRange(preset.left, limits) && inRange(preset.right, limits);
