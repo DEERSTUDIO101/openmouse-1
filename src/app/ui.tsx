@@ -372,6 +372,7 @@ export function RateSlider({
   hidden,
   onChange,
   locale = "en",
+  hoursAt,
 }: {
   id?: string;
   options: number[];
@@ -381,6 +382,8 @@ export function RateSlider({
   hidden?: boolean;
   onChange: (hz: number) => void;
   locale?: InterfaceLocale;
+  /** Full-charge hours at a rate, when known; shown in each button's tooltip and under the buttons. */
+  hoursAt?: (hz: number) => number | null;
   /** Kept for callers that used to hide the readout; buttons always show it. */
   bubble?: boolean;
 }): ReactNode {
@@ -405,7 +408,7 @@ export function RateSlider({
               className={on ? "is-on" : ""}
               aria-pressed={on}
               disabled={disabled}
-              title={`${rate.toLocaleString()} Hz`}
+              title={hoursAt?.(rate) != null ? `${rate.toLocaleString()} Hz - about ${Math.round(hoursAt(rate) as number)} h per charge` : `${rate.toLocaleString()} Hz`}
               onClick={() => onChange(rate)}
             >
               {shortRate(rate)}
@@ -413,6 +416,11 @@ export function RateSlider({
           );
         })}
       </div>
+      {hoursAt?.(options[selected] ?? 0) != null ? (
+        <small className="rate-slider-hours">
+          About {Math.round(hoursAt?.(options[selected] ?? 0) as number)} h per full charge at {options[selected]?.toLocaleString()} Hz
+        </small>
+      ) : null}
     </div>
   );
 }

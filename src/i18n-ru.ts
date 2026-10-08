@@ -202,6 +202,7 @@ export const ru: Record<I18nKey, string> = {
   "bat.full": "Заряжена полностью",
   "bat.untilFull": "до полного заряда",
   "bat.remaining": "осталось",
+  "bat.remainingRated": "осталось (по заявленной автономности)",
   "bat.charging": "Заряжается",
   "bat.chargingSlowly": "Заряжается медленно",
   "bat.almostFull": "Почти заряжена",
