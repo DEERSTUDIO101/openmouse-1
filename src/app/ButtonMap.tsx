@@ -32,6 +32,7 @@ export function ButtonMap({ snapshot }: { snapshot: ControlSnapshot }): ReactNod
 
   const status = snapshot.status;
   const entry = snapshot.profile.entry;
+  const estimate = status ? control.batteryEstimateParts(status, snapshot.preferences.locale) : null;
   const layout = status ? buttonMapLayoutFor(status.name) : null;
   if (!status || !entry || !layout) return null;
 
@@ -81,7 +82,10 @@ export function ButtonMap({ snapshot }: { snapshot: ControlSnapshot }): ReactNod
             <strong>{status.name}</strong>
             {status.connectionType ? <span>{connectionText(snapshot.preferences.locale, status.connectionType)}</span> : null}
             {status.batteryPercent !== null ? (
-              <span><BatteryIcon percent={status.batteryPercent} state={status.batteryState} />{status.batteryPercent}%</span>
+              <span title={estimate ? `${estimate.time} ${estimate.label}` : undefined}>
+                <BatteryIcon percent={status.batteryPercent} state={status.batteryState} />{status.batteryPercent}%
+                {estimate ? ` · ${estimate.time}` : ""}
+              </span>
             ) : null}
           </div>
         </div>
