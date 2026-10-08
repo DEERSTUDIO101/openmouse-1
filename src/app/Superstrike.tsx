@@ -17,6 +17,7 @@ import {
 } from "../hits-presets";
 import { BunnyHop } from "./cards/PerformanceCards";
 import { DeleteHitsPresetDialog } from "./DeleteHitsPresetDialog";
+import { SaveHitsPresetDialog } from "./SaveHitsPresetDialog";
 import { ImportHitsCodeDialog } from "./ImportHitsCodeDialog";
 
 function SuperstrikeSteps({
@@ -97,6 +98,7 @@ function HitsPresets({ state, limits, locale }: { state: AnalogTuningState; limi
   const [selected, setSelected] = useState("");
   const [note, setNote] = useState("");
   const [importOpen, setImportOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
 
   const values = (tuning: AnalogTuning): HitsButtonValues => ({
@@ -173,16 +175,22 @@ function HitsPresets({ state, limits, locale }: { state: AnalogTuningState; limi
       <button
         type="button"
         className="icon-button"
-        onClick={() => {
-          const name = window.prompt("Name this preset");
-          if (name?.trim()) {
-            save({ name, ...current() });
-            setNote(`Saved "${name.trim().slice(0, 40)}".`);
-          }
-        }}
+        onClick={() => setSaving(true)}
       >
         Save
       </button>
+      <SaveHitsPresetDialog
+        open={saving}
+        locale={locale}
+        values={current()}
+        existingNames={presets.map((preset) => preset.name)}
+        onClose={() => setSaving(false)}
+        onSave={(name) => {
+          save({ name, ...current() });
+          setNote(`Saved "${name}".`);
+          setSaving(false);
+        }}
+      />
       <button
         type="button"
         className="icon-button"
