@@ -1407,6 +1407,8 @@ nav { display: grid; gap: .3rem; margin-top: 1.4rem; }
 @media (min-width: 1200px) {
   .performance-main:has(> #logitech-button-map):has(> #logitech-analog-button-settings) {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    /* The map is taller than the right column; its extra height goes below Bunny Hop, not between the cards. */
+    grid-template-rows: auto 1fr;
     align-items: start;
   }
   .performance-main > #logitech-button-map { grid-column: 1; grid-row: 1 / span 2; }
