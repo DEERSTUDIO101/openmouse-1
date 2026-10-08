@@ -187,7 +187,10 @@ const BUDGET_BYTES: Record<string, number> = {
   // arrive through bridge-hid's SUPPORTED_HID_FILTERS as well as the
   // controllers. The measured aggregate is 2,084.2 kB, which left only 801
   // bytes of headroom under the old 2,085 kB.
-  ".js": 2_150_000,
+  // Raised to 2.2 MB for the Superstrike Buttons tab (button map, HITS presets,
+  // speed test, setup codes, bounce check) merged with protocol 0.28.0: the
+  // measured aggregate is 2,150.4 kB, 350 bytes over the old 2.15 MB budget.
+  ".js": 2_200_000,
 };
 
 const ASSETS = join("dist", "assets");
