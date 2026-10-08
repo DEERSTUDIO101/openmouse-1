@@ -117,13 +117,22 @@
 #magnetic-button-settings .magnetic-calibration-progress p { margin: 0 0 .5rem; color: var(--text-soft); font-size: .62rem; white-space: pre-line; }
 #magnetic-button-settings .magnetic-calibration-progress[data-phase="done"] p { color: var(--ui-accent); }
 #magnetic-button-settings .magnetic-calibration-progress[data-phase="failed"] p { color: var(--warning); }
-#logitech-button-map .button-map-body { display: grid; grid-template-columns: 17rem minmax(0, 1fr); gap: 1rem; align-items: start; margin-top: .6rem; }
-#logitech-button-map .button-map-commands { display: grid; gap: .35rem; align-content: start; max-height: 34rem; overflow-y: auto; padding-right: .25rem; }
+#logitech-button-map .button-map-body { display: grid; grid-template-columns: 14rem minmax(0, 1fr); gap: .8rem; align-items: start; margin-top: .3rem; }
+#logitech-button-map .button-map-commands { display: grid; gap: .35rem; align-content: start; max-height: 24rem; overflow-y: auto; padding-right: .25rem; }
 #logitech-button-map .button-map-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
 #logitech-button-map .button-map-status { display: flex; align-items: center; gap: .55rem; color: var(--faint); font: 600 .66rem var(--font-mono); }
 #logitech-button-map .button-map-status strong { color: var(--text-soft); font-weight: 650; }
 #logitech-button-map .button-map-status span { display: inline-flex; align-items: center; gap: .3rem; }
 #logitech-button-map .button-map-status span + span::before { content: none; }
+#logitech-button-map .button-map-commands { overscroll-behavior: contain; }
+#logitech-button-map .button-map-commands::-webkit-scrollbar { width: 8px; }
+#logitech-button-map .button-map-commands::-webkit-scrollbar-track { background: transparent; }
+#logitech-button-map .button-map-commands::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+#logitech-button-map .button-map-commands::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: 8px; background: var(--border-hover); background-clip: padding-box; }
+#logitech-button-map .button-map-commands::-webkit-scrollbar-thumb:hover { background: var(--ghost); background-clip: padding-box; }
+@supports not selector(::-webkit-scrollbar) {
+  #logitech-button-map .button-map-commands { scrollbar-width: thin; scrollbar-color: var(--border-hover) transparent; }
+}
 #logitech-button-map .button-map-search { width: 100%; box-sizing: border-box; padding: .4rem .55rem; border: 1px solid var(--border); border-radius: 7px; background: var(--input); color: var(--text); font: 650 .66rem var(--font-mono); }
 #logitech-button-map .button-map-help { color: var(--faint); font-size: .62rem; line-height: 1.4; }
 #logitech-button-map .button-map-section { display: grid; gap: .15rem; margin-top: .4rem; }
@@ -133,17 +142,17 @@
 #logitech-button-map .button-map-command:hover:not(:disabled) { border-color: var(--ghost); color: var(--text); }
 #logitech-button-map .button-map-command[aria-pressed="true"] { border-color: var(--ui-accent); color: var(--ui-accent); }
 #logitech-button-map .button-map-command:disabled { opacity: .45; cursor: not-allowed; }
-#logitech-button-map .button-map-stage { display: grid; gap: .8rem; justify-items: center; min-width: 0; }
-#logitech-button-map .button-map-canvas { --map-h: 27rem; position: relative; width: 100%; max-width: 58rem; height: var(--map-h); }
+#logitech-button-map .button-map-stage { display: grid; gap: .5rem; justify-items: center; min-width: 0; }
+#logitech-button-map .button-map-canvas { --map-h: 20rem; position: relative; width: 100%; max-width: 44rem; height: var(--map-h); }
 #logitech-button-map .button-map-art { position: absolute; top: 0; left: 50%; height: 100%; width: calc(var(--map-h) * var(--aspect)); transform: translateX(-50%); object-fit: contain; pointer-events: none; }
-#logitech-button-map .button-map-spot { --dotx: calc(50% + (var(--sx) - 0.5) * var(--map-h) * var(--aspect)); --label-w: 9.5rem; position: absolute; inset: 0; pointer-events: none; }
+#logitech-button-map .button-map-spot { --dotx: calc(50% + (var(--sx) - 0.5) * var(--map-h) * var(--aspect)); --label-w: 9rem; position: absolute; inset: 0; pointer-events: none; }
 #logitech-button-map .button-map-dot { position: absolute; left: var(--dotx); top: calc(var(--sy) * 100%); width: .95rem; height: .95rem; transform: translate(-50%, -50%); border: 2px solid var(--text); border-radius: 50%; background: var(--surface-raised); cursor: pointer; pointer-events: auto; padding: 0; }
 #logitech-button-map .button-map-spot.is-selected .button-map-dot { background: var(--ui-accent); border-color: var(--ui-accent); }
-#logitech-button-map .button-map-label { position: absolute; display: grid; gap: .1rem; width: var(--label-w); padding: .2rem .3rem; border: 0; background: none; color: var(--text); font-size: .68rem; cursor: pointer; pointer-events: auto; }
+#logitech-button-map .button-map-label { position: absolute; display: grid; gap: 0; width: var(--label-w); padding: .08rem .3rem; border: 0; background: none; color: var(--text); font-size: .68rem; line-height: 1.25; cursor: pointer; pointer-events: auto; }
 #logitech-button-map .button-map-label strong { font-weight: 650; }
 #logitech-button-map .button-map-label span { color: var(--faint); font: 600 .6rem var(--font-mono); overflow-wrap: anywhere; }
 #logitech-button-map .button-map-spot.is-selected .button-map-label span { color: var(--ui-accent); }
-#logitech-button-map .button-map-spot.is-locked .button-map-label strong::after { content: " (locked)"; color: var(--faint); font-weight: 500; }
+#logitech-button-map .button-map-spot.is-locked .button-map-label span::after { content: " · locked"; }
 #logitech-button-map .button-map-line { position: absolute; background: var(--line-strong); }
 #logitech-button-map .button-map-spot.is-left .button-map-label { left: 0; top: calc(var(--sy) * 100%); transform: translateY(-50%); text-align: right; }
 #logitech-button-map .button-map-spot.is-left .button-map-line { left: var(--label-w); top: calc(var(--sy) * 100%); height: 1px; width: calc(var(--dotx) - var(--label-w)); }
