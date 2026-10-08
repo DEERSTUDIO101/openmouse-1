@@ -1,5 +1,6 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import * as control from "../device/controller";
+import type { LogitechButtonAction } from "@openmouse/protocol/drivers/logitech/onboard-profiles";
 import type { ControlSnapshot } from "../device/types";
 import { buttonMapLayoutFor, type ButtonSpot } from "../logitech-button-map";
 import { COMMAND_SECTIONS, bindingFromKeyEvent, describeAssignment, isAssigned, shortcutText, type CommandEntry } from "../logitech-commands";
@@ -7,6 +8,9 @@ import { connectionText } from "../i18n";
 import { BatteryIcon } from "./ui";
 
 type Layer = "primary" | "g-shift";
+
+/** What each unlocked button does out of the box; G-Shift starts with nothing on them. */
+const DEFAULT_ACTION: Record<number, CommandEntry["label"]> = { 2: "Middle click", 3: "Back", 4: "Forward" };
 
 /** True when this mouse has a known button layout and a profile whose buttons can be written. */
 export function buttonMapAvailable(snapshot: ControlSnapshot): boolean {
@@ -78,6 +82,15 @@ export function ButtonMap({ snapshot }: { snapshot: ControlSnapshot }): ReactNod
     setPending((previous) => ({ ...previous, [`${layer}-${selected}`]: command.label }));
   };
 
+  const defaultFor = (button: number): LogitechButtonAction => (layer === "primary" ? DEFAULT_ACTION[button] : "Disabled") as LogitechButtonAction;
+  const reset = async (buttons: number[]): Promise<void> => {
+    for (const button of buttons) {
+      await control.applyLogitechButtonAssignment(layer, button, defaultFor(button));
+      setPending((previous) => ({ ...previous, [`${layer}-${button}`]: defaultFor(button) }));
+    }
+  };
+  const unlocked = layout.spots.filter((spot) => !isLocked(spot)).map((spot) => spot.button);
+
   const needle = query.trim().toLowerCase();
   const sections = COMMAND_SECTIONS
     .map((section) => ({
@@ -129,6 +142,10 @@ export function ButtonMap({ snapshot }: { snapshot: ControlSnapshot }): ReactNod
             >
               {recording ? "Press a key or shortcut... (Esc cancels)" : "Record a key or shortcut"}
             </button>
+            <div className="button-map-reset">
+              <button type="button" disabled={!canAssign} onClick={() => void reset([selected as number])}>Reset button</button>
+              <button type="button" disabled={snapshot.settingInProgress} onClick={() => void reset(unlocked)}>Reset all</button>
+            </div>
             <small className="button-map-help" role="status">{help}</small>
             {sections.map((section) => (
               <section key={section.id} className="button-map-section">
