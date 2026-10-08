@@ -34,9 +34,43 @@ function stableSnapshot(snapshot: ControlSnapshot): ControlSnapshot | null {
   return snapshot.settingInProgress && lastGood?.status?.name === snapshot.status?.name ? lastGood : null;
 }
 
-/** True when this mouse has a known button layout and a profile whose buttons can be written. */
+/**
+ * On the Host profile the mouse runs from software and has no stored profile
+ * open, so there is nothing to assign yet. The card then stays, with a way back.
+ */
+function onHostProfile(snapshot: ControlSnapshot): boolean {
+  const status = snapshot.status;
+  return snapshot.traits.logitech
+    && status !== null
+    && buttonMapLayoutFor(status.name) !== null
+    && snapshot.editedProfile === "host"
+    && (snapshot.onboardProfiles?.length ?? 0) > 0;
+}
+
+/** True when this mouse has a known button layout and a profile whose buttons can be written, or the Host profile is open on one that does. */
 export function buttonMapAvailable(snapshot: ControlSnapshot): boolean {
-  return stableSnapshot(snapshot) !== null;
+  return stableSnapshot(snapshot) !== null || onHostProfile(snapshot);
+}
+
+function HostProfileNotice({ snapshot }: { snapshot: ControlSnapshot }): ReactNode {
+  const profiles = snapshot.onboardProfiles ?? [];
+  const target = profiles.find((profile) => profile.isCurrent) ?? profiles[0];
+  return (
+    <div id="logitech-button-map">
+      <article className="setting-card superstrike-tuning-card button-map-card button-map-host">
+        <div className="setting-heading superstrike-tuning-heading"><div><h2>Button assignments</h2></div></div>
+        <p className="setting-description">
+          You are on the Host profile, which runs from software. Button assignments and Bunny Hop are stored in the
+          mouse's onboard profiles, so open one to edit them.
+        </p>
+        {target ? (
+          <button type="button" className="connect-button" onClick={() => control.openOnboardProfile(target.sector)}>
+            Open {control.describeProfileEntry(target).name}
+          </button>
+        ) : null}
+      </article>
+    </div>
+  );
 }
 
 /**
@@ -78,7 +112,7 @@ export function ButtonMap({ snapshot: live }: { snapshot: ControlSnapshot }): Re
   const entry = snapshot.profile.entry;
   const estimate = status ? control.batteryEstimateParts(status, snapshot.preferences.locale) : null;
   const layout = status ? buttonMapLayoutFor(status.name) : null;
-  if (!status || !entry || !layout) return null;
+  if (!status || !entry || !layout) return onHostProfile(live) ? <HostProfileNotice snapshot={live} /> : null;
 
   const assignments = layer === "primary" ? entry.buttonAssignments : entry.gShiftAssignments;
   const assignmentFor = (button: number) => assignments.find((assignment) => assignment.button === button);
