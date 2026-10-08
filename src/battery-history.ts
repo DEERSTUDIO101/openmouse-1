@@ -160,8 +160,8 @@ interface RatedBattery {
  *
  * The PRO X 3 draw figures are what G HUB displays. They are not read from the
  * mouse: a capture of G HUB stepping through every rate shows only the set-rate
- * command and no power values, so G HUB has them built in. The 135 h quote is
- * taken to be at 1000 Hz, which makes the cell about 1080 mWh (8 mW for 135 h).
+ * command and no power values, so G HUB has them built in. Logitech quotes 135 h
+ * at 1000 Hz, which makes the cell about 1080 mWh (8 mW for 135 h).
  */
 const RATED_BATTERY: Record<string, RatedBattery> = {
   PROX2SUPERSTRIKE: { hours: 90 },
