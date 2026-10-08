@@ -165,7 +165,9 @@
 #logitech-button-map .button-map-layers { display: inline-flex; gap: .2rem; padding: .2rem; border: 1px solid var(--border); border-radius: 8px; }
 #logitech-button-map .button-map-layers button { padding: .3rem .8rem; border: 0; border-radius: 6px; background: none; color: var(--text-soft); font: 650 .62rem var(--font-mono); text-transform: uppercase; letter-spacing: .06em; cursor: pointer; }
 #logitech-button-map .button-map-layers button[aria-selected="true"] { background: var(--surface-raised); color: var(--text); }
-#logitech-button-map .button-map-card { container-type: inline-size; display: flex; flex-direction: column; height: calc(100vh - 6.5rem); min-height: 28rem; }
+/* The wrapper is the query container, so the card itself can be restyled when it gets narrow. */
+#logitech-button-map { container-type: inline-size; }
+#logitech-button-map .button-map-card { display: flex; flex-direction: column; height: calc(100vh - 6.5rem); min-height: 28rem; }
 #logitech-button-map .button-map-body { flex: 1; min-height: 0; grid-template-rows: minmax(0, 1fr); align-items: center; }
 #logitech-button-map .button-map-commands { align-self: stretch; display: flex; flex-direction: column; min-height: 0; }
 @container (max-width: 40rem) {
