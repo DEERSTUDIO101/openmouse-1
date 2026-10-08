@@ -21,6 +21,10 @@ test("each layout offers the five buttons once, inside the artwork", () => {
   }
 });
 
+test("macros are not offered on the Superstrike mice, where G HUB locks them", () => {
+  for (const name of ["PRO X3 SUPERSTRIKE", "PRO X2 SUPERSTRIKE"]) assert.equal(buttonMapLayoutFor(name)!.onboardMacros, false);
+});
+
 test("only the two primary clicks are locked, and the side buttons sit left of the wheel", () => {
   const layout = buttonMapLayoutFor("PRO X3 SUPERSTRIKE")!;
   assert.deepEqual(layout.spots.filter((spot) => spot.locked).map((spot) => spot.button).sort(), [0, 1]);
