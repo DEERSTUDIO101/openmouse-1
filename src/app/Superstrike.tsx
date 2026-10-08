@@ -163,9 +163,9 @@ function HitsPresets({ state, limits, locale }: { state: AnalogTuningState; limi
         type="button"
         className="icon-button"
         onClick={() => {
-          const balanced = BUILT_IN_HITS_PRESETS.find((preset) => preset.name === "Balanced")!;
+          const defaults = BUILT_IN_HITS_PRESETS.find((preset) => preset.name === "Default")!;
           setSelected("");
-          load(balanced, "Balanced (reset)");
+          load(defaults, "Default (reset)");
         }}
       >
         Reset

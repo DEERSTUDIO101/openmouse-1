@@ -98,7 +98,7 @@ test("damaged or out-of-range stored presets are dropped, not trusted", () => {
 
 test("the built-in presets are valid for the narrowest mouse and survive a share code", () => {
   const narrow = { maxActuation: 10, maxRapidTrigger: 5, maxHaptics: 5 };
-  assert.deepEqual(BUILT_IN_HITS_PRESETS.map((preset) => preset.name), ["Competitive", "Balanced", "Casual"]);
+  assert.deepEqual(BUILT_IN_HITS_PRESETS.map((preset) => preset.name), ["Default", "Competitive", "Balanced", "Casual"]);
   for (const preset of [...BUILT_IN_HITS_PRESETS, ...PRO_HITS_PRESETS]) {
     assert.equal(presetFits(preset, narrow), true, preset.name);
     assert.deepEqual(decodeHitsCode(encodeHitsCode(preset)), { left: preset.left, right: preset.right });
