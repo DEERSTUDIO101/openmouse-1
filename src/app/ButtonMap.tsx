@@ -1,8 +1,8 @@
-import { useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import * as control from "../device/controller";
 import type { ControlSnapshot } from "../device/types";
 import { buttonMapLayoutFor, type ButtonSpot } from "../logitech-button-map";
-import { COMMAND_SECTIONS, describeAssignment, isAssigned, type CommandEntry } from "../logitech-commands";
+import { COMMAND_SECTIONS, bindingFromKeyEvent, describeAssignment, isAssigned, shortcutText, type CommandEntry } from "../logitech-commands";
 import { connectionText } from "../i18n";
 import { BatteryIcon } from "./ui";
 
@@ -29,6 +29,27 @@ export function ButtonMap({ snapshot }: { snapshot: ControlSnapshot }): ReactNod
   const [query, setQuery] = useState("");
   // What the user picked for a staged button, so the callout can say it before the flash.
   const [pending, setPending] = useState<Record<string, string>>({});
+  const [recording, setRecording] = useState(false);
+
+  const recordable = selected !== null && !(selected <= 1 && layer === "primary") && !snapshot.settingInProgress;
+  useEffect(() => {
+    if (!recording || !recordable || selected === null) return;
+    const onKey = (event: KeyboardEvent): void => {
+      event.preventDefault();
+      // A bare Escape cancels; Ctrl+Esc and the like are still recordable.
+      if (event.code === "Escape" && !event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey) {
+        setRecording(false);
+        return;
+      }
+      const binding = bindingFromKeyEvent(event);
+      if (!binding || binding.kind !== "keyboard") return;
+      void control.applyLogitechButtonAssignment(layer, selected, binding);
+      setPending((previous) => ({ ...previous, [`${layer}-${selected}`]: shortcutText(binding.key, binding.modifiers) }));
+      setRecording(false);
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [recording, recordable, selected, layer]);
 
   const status = snapshot.status;
   const entry = snapshot.profile.entry;
@@ -99,6 +120,15 @@ export function ButtonMap({ snapshot }: { snapshot: ControlSnapshot }): ReactNod
               value={query}
               onChange={(event) => setQuery(event.currentTarget.value)}
             />
+            <button
+              type="button"
+              className="button-map-record"
+              aria-pressed={recording}
+              disabled={!canAssign}
+              onClick={() => setRecording((on) => !on)}
+            >
+              {recording ? "Press a key or shortcut... (Esc cancels)" : "Record a key or shortcut"}
+            </button>
             <small className="button-map-help" role="status">{help}</small>
             {sections.map((section) => (
               <section key={section.id} className="button-map-section">

@@ -172,3 +172,7 @@
 
 /* The search box stays at the top of the command list while it scrolls. */
 #logitech-button-map .button-map-search { position: sticky; top: 0; z-index: 1; box-shadow: 0 .35rem 0 0 var(--surface-panel-strong); }
+#logitech-button-map .button-map-record { padding: .45rem .55rem; border: 1px dashed color-mix(in srgb, var(--ui-accent) 62%, var(--border)); border-radius: 7px; background: transparent; color: var(--ui-accent); font: 700 .62rem var(--font-mono); text-align: left; }
+#logitech-button-map .button-map-record:hover:not(:disabled) { background: var(--ui-accent-soft); }
+#logitech-button-map .button-map-record[aria-pressed="true"] { border-style: solid; background: var(--ui-accent); color: var(--ui-accent-ink); }
+#logitech-button-map .button-map-record:disabled { opacity: .4; cursor: not-allowed; }

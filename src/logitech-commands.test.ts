@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { encodeButtonAssignment, LOGITECH_BUTTON_ACTIONS } from "@openmouse/protocol/drivers/logitech/onboard-profiles";
-import { ALT, COMMAND_SECTIONS, CTRL, META, SHIFT, describeAssignment, isAssigned, keyName, shortcutText } from "./logitech-commands.ts";
+import { ALT, COMMAND_SECTIONS, CTRL, META, SHIFT, bindingFromKeyEvent, describeAssignment, isAssigned, keyName, shortcutText, usageForCode } from "./logitech-commands.ts";
 
 const entries = COMMAND_SECTIONS.flatMap((section) => section.entries);
 
@@ -49,4 +49,18 @@ test("a stored keyboard or media assignment is described, and anything else is C
   assert.equal(describeAssignment("Custom", [0x80, 0x03, 0x12, 0x34]), "Media key 4660");
   assert.equal(describeAssignment("Custom", [0x12, 0x34, 0x56, 0x78]), "Custom");
   assert.equal(describeAssignment("Forward", [0x80, 0x01, 0x00, 0x10]), "Forward");
+});
+
+test("a recorded key press becomes the HID key and modifiers the profile stores", () => {
+  const press = (code: string, mods: Partial<Record<"ctrlKey" | "shiftKey" | "altKey" | "metaKey", boolean>> = {}) =>
+    bindingFromKeyEvent({ code, ctrlKey: false, shiftKey: false, altKey: false, metaKey: false, ...mods });
+  assert.deepEqual(press("KeyC", { ctrlKey: true }), { kind: "keyboard", key: 0x06, modifiers: CTRL });
+  assert.deepEqual(press("Digit0"), { kind: "keyboard", key: 0x27, modifiers: 0 });
+  assert.deepEqual(press("F5"), { kind: "keyboard", key: 0x3e, modifiers: 0 });
+  assert.deepEqual(press("Tab", { ctrlKey: true, shiftKey: true }), { kind: "keyboard", key: 0x2b, modifiers: CTRL | SHIFT });
+  assert.equal(press("ShiftLeft", { shiftKey: true }), null);
+  // Every usage we can record is named the way the card shows it back.
+  for (const code of ["KeyA", "KeyZ", "Digit1", "Digit9", "F1", "F12", "ArrowUp", "Delete", "Space"]) {
+    assert.ok(!keyName(usageForCode(code)!).startsWith("Key 0x"), code);
+  }
 });

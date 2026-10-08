@@ -164,3 +164,30 @@ export function isAssigned(entry: CommandEntry, action: string, raw: readonly nu
   if (target.kind === "keyboard") return raw[0] === 0x80 && raw[1] === 0x02 && raw[2] === target.modifiers && raw[3] === target.key;
   return raw[0] === 0x80 && raw[1] === 0x03 && (((raw[2] ?? 0) << 8) | (raw[3] ?? 0)) === target.usage;
 }
+
+const CODE_USAGE: Record<string, number> = {
+  Enter: 0x28, Escape: 0x29, Backspace: 0x2a, Tab: 0x2b, Space: 0x2c, Minus: 0x2d, Equal: 0x2e,
+  BracketLeft: 0x2f, BracketRight: 0x30, Backslash: 0x31, Semicolon: 0x33, Quote: 0x34, Backquote: 0x35,
+  Comma: 0x36, Period: 0x37, Slash: 0x38, PrintScreen: 0x46, ScrollLock: 0x47, Pause: 0x48, Insert: 0x49,
+  Home: 0x4a, PageUp: 0x4b, Delete: 0x4c, End: 0x4d, PageDown: 0x4e, ArrowRight: 0x4f, ArrowLeft: 0x50,
+  ArrowDown: 0x51, ArrowUp: 0x52,
+};
+
+/** The HID usage for a KeyboardEvent.code, or null for keys the profile cannot store (modifiers, numpad, ...). */
+export function usageForCode(code: string): number | null {
+  const letter = /^Key([A-Z])$/.exec(code);
+  if (letter) return 0x04 + letter[1].charCodeAt(0) - 0x41;
+  const digit = /^Digit([0-9])$/.exec(code);
+  if (digit) return digit[1] === "0" ? 0x27 : 0x1d + Number(digit[1]);
+  const fn = /^F([1-9]|1[0-2])$/.exec(code);
+  if (fn) return 0x39 + Number(fn[1]);
+  return CODE_USAGE[code] ?? null;
+}
+
+/** A recorded key press as a keyboard binding, or null while only modifiers are held. */
+export function bindingFromKeyEvent(event: { code: string; ctrlKey: boolean; shiftKey: boolean; altKey: boolean; metaKey: boolean }): CommandTarget | null {
+  const key = usageForCode(event.code);
+  if (key === null) return null;
+  const modifiers = (event.ctrlKey ? CTRL : 0) | (event.shiftKey ? SHIFT : 0) | (event.altKey ? ALT : 0) | (event.metaKey ? META : 0);
+  return { kind: "keyboard", key, modifiers };
+}
