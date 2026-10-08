@@ -44,22 +44,6 @@ export function averageMs(values: readonly (number | null)[]): number | null {
   return known.length === 0 ? null : known.reduce((sum, value) => sum + value, 0) / known.length;
 }
 
-export interface PressTrace {
-  /** The press in progress, from the first report above 0. */
-  current: DepthSample[];
-  /** The last finished press, from its first report to the return to 0. */
-  last: DepthSample[];
-}
-
-export const EMPTY_TRACE: PressTrace = { current: [], last: [] };
-
-/** Feeds one depth report into a trace. A press ends when the depth is back at 0. */
-export function trackPress(trace: PressTrace, sample: DepthSample): PressTrace {
-  if (sample.depth > 0) return { ...trace, current: [...trace.current, sample] };
-  if (trace.current.length === 0) return trace;
-  return { current: [], last: [...trace.current, sample] };
-}
-
 /** Two presses of one button closer than this are a switch bouncing, not a finger. */
 export const BOUNCE_GAP_MS = 30;
 

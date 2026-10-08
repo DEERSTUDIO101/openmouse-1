@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { averageMs, bounceReport, EMPTY_TRACE, savedMs, stepTimes, trackPress } from "./hits-test.ts";
+import { averageMs, bounceReport, savedMs, stepTimes } from "./hits-test.ts";
 
 const press = (...steps: [number, number][]) => steps.map(([t, depth]) => ({ t, depth }));
 
@@ -30,17 +30,6 @@ test("step times count from the start and are null for steps the press skipped",
 test("the average skips presses that could not be compared", () => {
   assert.equal(averageMs([10, null, 20]), 15);
   assert.equal(averageMs([null, null]), null);
-});
-
-test("a press is recorded from its first report until the depth returns to 0", () => {
-  let trace = EMPTY_TRACE;
-  for (const sample of press([0, 0], [10, 2], [20, 6], [30, 3], [45, 0])) trace = trackPress(trace, sample);
-  assert.deepEqual(trace.last.map((sample) => sample.depth), [2, 6, 3, 0]);
-  assert.deepEqual(trace.current, []);
-  // A new press does not replace the last one until it finishes.
-  trace = trackPress(trace, { t: 100, depth: 4 });
-  assert.equal(trace.last.length, 4);
-  assert.equal(trace.current.length, 1);
 });
 
 test("presses closer than the bounce gap are counted as bounce", () => {
