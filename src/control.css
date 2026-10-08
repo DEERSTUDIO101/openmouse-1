@@ -1401,6 +1401,8 @@ nav { display: grid; gap: .3rem; margin-top: 1.4rem; }
 .performance-main > #logitech-button-map { order: -2; }
 .performance-main > #logitech-analog-button-settings { order: -1; }
 .performance-main > * { grid-column: 1 / -1; }
+/* The HITS card's wrapper carries a top margin from its old layout; cards here line up. */
+.performance-main > #logitech-analog-button-settings { margin-top: 0; }
 @media (min-width: 1200px) {
   .performance-main:has(> #logitech-button-map):has(> #logitech-analog-button-settings) {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
