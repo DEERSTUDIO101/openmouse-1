@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import * as control from "../device/controller";
-import { LOGITECH_MOUSE_BUTTON_MASK, type LogitechButtonAction } from "@openmouse/protocol/drivers/logitech/onboard-profiles";
+import type { LogitechButtonAction } from "@openmouse/protocol/drivers/logitech/onboard-profiles";
 import type { ControlSnapshot } from "../device/types";
 import { buttonMapLayoutFor, type ButtonSpot } from "../logitech-button-map";
 import { COMMAND_SECTIONS, bindingFromKeyEvent, conflictHints, describeAssignment, isAssigned, shortcutText, type CommandEntry } from "../logitech-commands";
@@ -10,17 +10,7 @@ import { BatteryIcon } from "./ui";
 
 type Layer = "primary" | "g-shift";
 
-/** A key or shortcut (key, modifiers) or a mouse click (mouse, the button mask), with the pause before it. */
-interface MacroStep { key?: number; modifiers?: number; mouse?: number; delayMs: number; label: string }
-
-// Browser MouseEvent.button values, as the macro's button mask and the action's name.
-const MOUSE_BUTTONS: Record<number, { mask: number; label: string }> = {
-  0: { mask: LOGITECH_MOUSE_BUTTON_MASK.left, label: "Left click" },
-  1: { mask: LOGITECH_MOUSE_BUTTON_MASK.middle, label: "Middle click" },
-  2: { mask: LOGITECH_MOUSE_BUTTON_MASK.right, label: "Right click" },
-  3: { mask: LOGITECH_MOUSE_BUTTON_MASK.back, label: "Back" },
-  4: { mask: LOGITECH_MOUSE_BUTTON_MASK.forward, label: "Forward" },
-};
+interface MacroStep { key: number; modifiers: number; delayMs: number; label: string }
 
 /** What each unlocked button does out of the box; G-Shift starts with nothing on them. */
 const DEFAULT_ACTION: Record<number, CommandEntry["label"]> = { 2: "Middle click", 3: "Back", 4: "Forward" };
@@ -173,16 +163,10 @@ export function ButtonMap({ snapshot: live }: { snapshot: ControlSnapshot }): Re
       setMacro([]);
       return;
     }
-    const [only] = macro;
-    if (macro.length === 1 && only.mouse !== undefined) {
-      // One click is just the button's own action, no macro needed.
-      void control.applyLogitechButtonAssignment(layer, selected, only.label as LogitechButtonAction);
-    } else if (macro.length === 1) {
-      void control.applyLogitechButtonAssignment(layer, selected, { kind: "keyboard", key: only.key ?? 0, modifiers: only.modifiers ?? 0 });
+    if (macro.length === 1) {
+      void control.applyLogitechButtonAssignment(layer, selected, { kind: "keyboard", key: macro[0].key, modifiers: macro[0].modifiers });
     } else {
-      void control.applyLogitechKeyboardSequence(layer, selected, macro.map((step) => (step.mouse !== undefined
-        ? { mouseButtons: step.mouse, delayMs: step.delayMs }
-        : { key: step.key ?? 0, modifiers: step.modifiers ?? 0, delayMs: step.delayMs })));
+      void control.applyLogitechKeyboardSequence(layer, selected, macro.map(({ key, modifiers, delayMs }) => ({ key, modifiers, delayMs })));
     }
     setPending((previous) => ({ ...previous, [`${layer}-${selected}`]: macro.length === 1 ? macro[0].label : `${macro.length}-key macro` }));
     setRecording(false);
@@ -261,26 +245,6 @@ export function ButtonMap({ snapshot: live }: { snapshot: ControlSnapshot }): Re
                 ? (macro.length ? `Done: assign ${macro.length} ${macro.length === 1 ? "key" : "keys"}` : "Press keys in order... (Esc cancels)")
                 : "Record a macro"}
             </button>
-            {recording === "macro" ? (
-              <div
-                className="button-map-click-pad"
-                onMouseDown={(event) => {
-                  event.preventDefault();
-                  const button = MOUSE_BUTTONS[event.button];
-                  if (!button) return;
-                  const now = performance.now();
-                  const delayMs = lastKeyAt.current === 0 ? 0 : Math.min(0xffff, Math.round(now - lastKeyAt.current));
-                  lastKeyAt.current = now;
-                  setMacro((steps) => [...steps, { mouse: button.mask, delayMs, label: button.label }]);
-                }}
-                // Back and Forward would otherwise navigate the browser; a right click would open its menu.
-                onMouseUp={(event) => event.preventDefault()}
-                onAuxClick={(event) => event.preventDefault()}
-                onContextMenu={(event) => event.preventDefault()}
-              >
-                Click here with any mouse button to add it
-              </div>
-            ) : null}
             {recording === "macro" && macro.length ? <small className="button-map-help">{macro.map((step) => step.label).join(", ")}</small> : null}
             <div className="button-map-reset">
               <button type="button" disabled={!canAssign} onClick={() => void reset([selected as number])}>Reset button</button>
