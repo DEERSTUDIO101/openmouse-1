@@ -327,7 +327,7 @@ function LiftOffScale({ snapshot }: { snapshot: ControlSnapshot }): ReactNode {
   );
 }
 
-function BunnyHop({ snapshot }: { snapshot: ControlSnapshot }): ReactNode {
+export function BunnyHop({ snapshot }: { snapshot: ControlSnapshot }): ReactNode {
   const entry = snapshot.profile.entry;
   if (!snapshot.profile.bunnyHopSupported || !entry) return null;
   const locale = snapshot.preferences.locale;

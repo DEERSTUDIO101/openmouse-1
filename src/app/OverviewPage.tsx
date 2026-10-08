@@ -542,6 +542,8 @@ export function Workspace({
   const powerOverview = status.ui?.powerOverview === true;
 
   const performance = [
+    // First in the Buttons tab, in the card list so the mouse panel stays beside it.
+    show(has.superstrike, ["buttons"]) ? <Superstrike key="superstrike" snapshot={snapshot} /> : null,
     show(has.dpi, ["performance"]) ? <DpiCard key="dpi" snapshot={snapshot} /> : null,
     show(has.polling, ["performance"]) ? <PollingCard key="polling" snapshot={snapshot} /> : null,
     show(has.sensor, ["performance"]) ? <SensorCard key="sensor" snapshot={snapshot} /> : null,
@@ -694,7 +696,6 @@ export function Workspace({
           <MxMasterCards snapshot={snapshot} />
         </section>
       ) : null}
-      {showSuperstrike ? <Superstrike snapshot={snapshot} /> : null}
       {showMagnetic ? <MagneticButtons snapshot={snapshot} /> : null}
 
       {advanced.length > 0 ? (

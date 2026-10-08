@@ -3,6 +3,7 @@ import * as control from "../device/controller";
 import { t, tp } from "../i18n";
 import type { InterfaceLocale } from "../interface-preferences";
 import type { AnalogTuning, ControlSnapshot } from "../device/types";
+import { BunnyHop } from "./cards/PerformanceCards";
 
 function SuperstrikeSteps({
   id,
@@ -179,13 +180,9 @@ export function Superstrike({ snapshot }: { snapshot: ControlSnapshot }): ReactN
   const showApply = !snapshot.preferences.instantFlash || snapshot.gameProfileDraft;
 
   return (
-    <section
-      id="logitech-analog-button-settings"
-      className="device-data"
-      role="tabpanel"
-      aria-labelledby="workspace-tab-buttons"
-      aria-label="HITS tuning settings"
-    >
+    // A card in the Buttons tab's card list, so the mouse panel sits beside it.
+    // The id scopes this card's styles.
+    <div id="logitech-analog-button-settings">
       <article className="setting-card superstrike-tuning-card">
         <div className="setting-heading superstrike-tuning-heading"><div><h2>HITS Tuning</h2></div></div>
         <PressMeter actuation={[state.left.actuation, state.right.actuation]} />
@@ -240,7 +237,8 @@ export function Superstrike({ snapshot }: { snapshot: ControlSnapshot }): ReactN
             ) : null}
           </fieldset>
         </div>
+        <BunnyHop snapshot={snapshot} />
       </article>
-    </section>
+    </div>
   );
 }
