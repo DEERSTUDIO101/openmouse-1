@@ -336,6 +336,7 @@ export function DeviceShowcaseSidebar({ snapshot }: { snapshot: ControlSnapshot 
   const showButtonMarkers = snapshot.workspaceTab === "buttons"
     && isNoirKsnakeStatus(status)
     && status.buttonMappings != null;
+  const batteryEstimate = control.batteryEstimateParts(status, locale);
 
   return (
     <div className="showcase-sidebar">
@@ -410,6 +411,9 @@ export function DeviceShowcaseSidebar({ snapshot }: { snapshot: ControlSnapshot 
             {" · "}
             <BatteryIcon percent={status.batteryPercent} state={status.batteryState} />
             {status.batteryPercent}%
+            {batteryEstimate ? (
+              <span title={`${batteryEstimate.time} ${batteryEstimate.label}`}>{" · "}{batteryEstimate.time}</span>
+            ) : null}
           </span>
         ) : null}
       </div>

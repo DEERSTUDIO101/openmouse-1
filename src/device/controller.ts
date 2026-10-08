@@ -1,4 +1,4 @@
-import { cachedBatterySamples, estimateBatteryTime, recordBatterySample, type BatteryMode } from "../battery-history";
+import { cachedBatterySamples, estimateBatteryTime, estimateFromRatedLife, ratedBatteryHours, recordBatterySample, type BatteryMode } from "../battery-history";
 import { applyBridgeNativeSettings } from "../bridge";
 import {
   clientSupportScore,
@@ -1998,12 +1998,35 @@ export function batteryDetail(status: MouseStatus, locale: InterfaceLocale = "en
   if (status.batteryState === "Full") return withVoltage(t(locale, "bat.full"));
   const mode = batteryMode(status.batteryState);
   if (!mode) return withVoltage(batteryStateText(locale, status.batteryState));
+  const state = batteryStateText(locale, status.batteryState);
+  const estimate = batteryEstimateText(status, locale);
+  return withVoltage(estimate ? `${state} · ${estimate}` : state);
+}
+
+/**
+ * How long the battery should last or take to fill, from this device's own
+ * history once there is enough of it. Until then a mouse with a known rated
+ * life shows how long the charge would last at that rate.
+ */
+export function batteryEstimateParts(
+  status: MouseStatus,
+  locale: InterfaceLocale = "en",
+): { time: string; label: string } | null {
+  if (status.batteryPercent === null || status.batteryState === "Full") return null;
+  const mode = batteryMode(status.batteryState);
+  if (!mode) return null;
   const now = Date.now();
   const samples = cachedBatterySamples(localStorage, status.name, now);
   const estimate = estimateBatteryTime(samples, status.batteryPercent, mode, now);
-  const label = mode === "charging" ? t(locale, "bat.untilFull") : t(locale, "bat.remaining");
-  const state = batteryStateText(locale, status.batteryState);
-  return withVoltage(estimate ? `${state} · ${estimate} ${label}` : state);
+  if (estimate) return { time: estimate, label: mode === "charging" ? t(locale, "bat.untilFull") : t(locale, "bat.remaining") };
+  const ratedHours = mode === "discharging" ? ratedBatteryHours(status.name) : null;
+  const rated = ratedHours ? estimateFromRatedLife(status.batteryPercent, ratedHours) : null;
+  return rated ? { time: rated, label: t(locale, "bat.remainingRated") } : null;
+}
+
+export function batteryEstimateText(status: MouseStatus, locale: InterfaceLocale = "en"): string | null {
+  const parts = batteryEstimateParts(status, locale);
+  return parts ? `${parts.time} ${parts.label}` : null;
 }
 
 function diagnosticErrorMessage(error: unknown, fallback: string): string {

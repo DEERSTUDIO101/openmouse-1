@@ -137,3 +137,23 @@ export function estimateBatteryTime(
   if (remainingPercent <= 0) return null;
   return formatEstimate(remainingPercent / (change / elapsed));
 }
+
+/**
+ * Manufacturer battery life, in hours, for mice that report a percent and
+ * nothing else. A rough stand-in until real usage history gives a better figure.
+ * Keyed by the device name without spaces, upper-cased.
+ */
+const RATED_BATTERY_HOURS: Record<string, number> = {
+  PROX2SUPERSTRIKE: 90,
+  PROX3SUPERSTRIKE: 135,
+};
+
+export function ratedBatteryHours(deviceName: string): number | null {
+  return RATED_BATTERY_HOURS[deviceName.replace(/\s+/g, "").toUpperCase()] ?? null;
+}
+
+/** Time left if the battery drains at the rated rate, in the same format as estimateBatteryTime. */
+export function estimateFromRatedLife(percent: number, ratedHours: number): string | null {
+  if (!(percent > 0) || !(ratedHours > 0)) return null;
+  return formatEstimate((percent / 100) * ratedHours * 60 * 60 * 1000);
+}

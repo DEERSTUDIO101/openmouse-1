@@ -203,6 +203,7 @@ export const zh: Record<I18nKey, string> = {
   "bat.full": "已充满",
   "bat.untilFull": "至充满",
   "bat.remaining": "剩余",
+  "bat.remainingRated": "剩余（按标称续航）",
   "bat.charging": "充电中",
   "bat.chargingSlowly": "缓慢充电中",
   "bat.almostFull": "接近充满",

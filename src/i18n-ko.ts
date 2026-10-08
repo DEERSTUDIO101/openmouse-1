@@ -203,6 +203,7 @@ export const ko: Record<I18nKey, string> = {
   "bat.full": "완전 충전됨",
   "bat.untilFull": "완전 충전까지",
   "bat.remaining": "남음",
+  "bat.remainingRated": "남음 (공식 사용 시간 기준)",
   "bat.charging": "충전 중",
   "bat.chargingSlowly": "저속 충전 중",
   "bat.almostFull": "거의 충전됨",

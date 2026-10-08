@@ -153,6 +153,7 @@ export const vi: Record<I18nKey, string> = {
   "bat.full": "Đã sạc đầy",
   "bat.untilFull": "đến khi đầy",
   "bat.remaining": "còn lại",
+  "bat.remainingRated": "còn lại (theo thời lượng pin công bố)",
   "bat.charging": "Đang sạc",
   "bat.chargingSlowly": "Đang sạc chậm",
   "bat.almostFull": "Gần đầy",

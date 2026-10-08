@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { cachedBatterySamples, estimateBatteryTime, recordBatterySample, saveBatterySample } from "./battery-history.ts";
+import { cachedBatterySamples, estimateBatteryTime, estimateFromRatedLife, ratedBatteryHours, recordBatterySample, saveBatterySample } from "./battery-history.ts";
 
 class MemoryStorage implements Storage {
   #values = new Map<string, string>();
@@ -54,4 +54,19 @@ test("cached battery samples load once from storage on cold start", () => {
   const samples = cachedBatterySamples(storage, "ColdMouse", 60_000);
   assert.equal(samples.length, 1);
   assert.equal(samples[0]?.percent, 75);
+});
+
+test("rated battery life is known for the Superstrike mice, whatever the spacing of the name", () => {
+  assert.equal(ratedBatteryHours("PRO X3 SUPERSTRIKE"), 135);
+  assert.equal(ratedBatteryHours("PRO X 2 Superstrike"), 90);
+  assert.equal(ratedBatteryHours("PRO X2 SUPERSTRIKE"), 90);
+  assert.equal(ratedBatteryHours("Some other mouse"), null);
+});
+
+test("the rated-life estimate scales with the charge and uses the usual format", () => {
+  assert.equal(estimateFromRatedLife(100, 135), "~5.6 days");
+  assert.equal(estimateFromRatedLife(51, 135), "~2.9 days");
+  assert.equal(estimateFromRatedLife(10, 90), "~9.0 hr");
+  assert.equal(estimateFromRatedLife(0, 135), null, "an empty battery has no time left to show");
+  assert.equal(estimateFromRatedLife(50, 0), null);
 });
