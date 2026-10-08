@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { encodeButtonAssignment, LOGITECH_BUTTON_ACTIONS } from "@openmouse/protocol/drivers/logitech/onboard-profiles";
-import { ALT, COMMAND_SECTIONS, CTRL, META, SHIFT, bindingFromKeyEvent, describeAssignment, isAssigned, keyName, shortcutText, usageForCode } from "./logitech-commands.ts";
+import { ALT, COMMAND_SECTIONS, CTRL, META, SHIFT, bindingFromKeyEvent, conflictHints, describeAssignment, isAssigned, keyName, shortcutText, usageForCode } from "./logitech-commands.ts";
 
 const entries = COMMAND_SECTIONS.flatMap((section) => section.entries);
 
@@ -63,4 +63,22 @@ test("a recorded key press becomes the HID key and modifiers the profile stores"
   for (const code of ["KeyA", "KeyZ", "Digit1", "Digit9", "F1", "F12", "ArrowUp", "Delete", "Space"]) {
     assert.ok(!keyName(usageForCode(code)!).startsWith("Key 0x"), code);
   }
+});
+
+test("a macro record is described as a macro", () => {
+  assert.equal(describeAssignment("Custom", [0x00, 0x04, 0x07, 0x00]), "Macro");
+});
+
+test("two buttons doing the same thing, and Back or Forward left unassigned, are called out", () => {
+  const layout = (...texts: string[]) => ["Primary click", "Secondary click", "Middle click", "Forward", "Back"]
+    .map((label, index) => ({ label, text: texts[index] }));
+  assert.deepEqual(conflictHints(layout("Left click", "Right click", "Middle click", "Forward", "Back")), []);
+  assert.deepEqual(
+    conflictHints(layout("Left click", "Right click", "Middle click", "Back", "Back")),
+    ["Forward and Back both do Back.", "Nothing is set to Forward."],
+  );
+  assert.deepEqual(
+    conflictHints(layout("Left click", "Right click", "Disabled", "Disabled", "Disabled")),
+    ["Nothing is set to Back.", "Nothing is set to Forward."],
+  );
 });

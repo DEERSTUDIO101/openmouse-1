@@ -154,7 +154,33 @@ export function describeAssignment(action: string, raw: readonly number[]): stri
     const usage = ((raw[2] ?? 0) << 8) | (raw[3] ?? 0);
     return MEDIA_NAMES.get(usage) ?? `Media key ${usage}`;
   }
+  // A macro record is 00 <button> <macro sector> 00.
+  if (raw[0] === 0x00 && (raw[2] ?? 0) > 0) return "Macro";
   return "Custom";
+}
+
+/** What is "not a real command" for the conflict check. */
+const NO_COMMAND = new Set(["-", "Disabled", "Pending"]);
+
+/**
+ * Plain-words warnings about a button layout: two buttons that do the same thing,
+ * and Back or Forward that nothing is set to. `buttons` is every button with the
+ * text it shows.
+ */
+export function conflictHints(buttons: readonly { label: string; text: string }[]): string[] {
+  const hints: string[] = [];
+  const seen = new Map<string, string[]>();
+  for (const { label, text } of buttons) {
+    if (NO_COMMAND.has(text)) continue;
+    seen.set(text, [...(seen.get(text) ?? []), label]);
+  }
+  for (const [text, labels] of seen) {
+    if (labels.length > 1) hints.push(`${labels.join(" and ")} both do ${text}.`);
+  }
+  for (const wanted of ["Back", "Forward"]) {
+    if (!seen.has(wanted)) hints.push(`Nothing is set to ${wanted}.`);
+  }
+  return hints;
 }
 
 /** True when the stored assignment is exactly this command. */

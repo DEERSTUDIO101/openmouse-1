@@ -188,3 +188,4 @@
 #logitech-button-map .button-map-share { padding: .4rem .8rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-raised); color: var(--text); font-size: .66rem; font-weight: 650; white-space: nowrap; }
 #logitech-button-map .button-map-share:hover { border-color: var(--ui-accent); color: var(--ui-accent); }
 #logitech-button-map .button-map-host { height: auto; min-height: 0; gap: .8rem; display: grid; align-content: start; }
+#logitech-button-map .button-map-hints { display: grid; gap: .15rem; margin: 0 0 .5rem; padding: 0; list-style: none; color: var(--warning); font-size: .64rem; text-align: center; }
