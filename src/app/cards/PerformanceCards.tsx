@@ -12,6 +12,7 @@ import type { ControlSnapshot, LiftOffLevel } from "../../device/types";
 import { t, tp } from "../../i18n";
 import type { InterfaceLocale } from "../../interface-preferences";
 import { RateSlider, Segmented, SwitchButton } from "../ui";
+import { fullChargeHoursAt } from "../../battery-history";
 import { BounceCheckDialog } from "../BounceCheckDialog";
 
 const LOD_LEVELS: readonly LiftOffLevel[] = ["Low", "Medium", "High"];
@@ -81,6 +82,7 @@ export function PollingCard({ snapshot }: { snapshot: ControlSnapshot }): ReactN
                 ?? (link === "wired" ? entry.reportRateWired : entry.reportRateWireless)}
               label={shared ? t(locale, "perf.allConnections") : link === "wired" ? t(locale, "perf.wired") : t(locale, "perf.wireless")}
               disabled={locked || snapshot.settingInProgress}
+              hoursAt={link === "wired" ? undefined : (hz) => fullChargeHoursAt(status.name, hz)}
               onChange={(hz) => control.setProfileReportRate(link, hz)}
             />
           ))}
@@ -93,6 +95,7 @@ export function PollingCard({ snapshot }: { snapshot: ControlSnapshot }): ReactN
           valueHz={status.pollingRateHz}
           disabled={(snapshot.settingsPending && !nativeX11) || status.ui?.pollingReadOnly === true}
           bubble={false}
+          hoursAt={(hz) => fullChargeHoursAt(status.name, hz)}
           onChange={control.applyPollingRate}
         />
       )}

@@ -5156,3 +5156,4 @@ body { height: 100vh; overflow: hidden; }
 .hits-test-ladder > span[data-mark="hits"] i { color: var(--ui-accent); }
 .hits-test-ladder > span[data-mark="conventional"] i { color: var(--warning); }
 @media (max-width: 720px) { .hits-test-body { grid-template-columns: minmax(0, 1fr); } }
+.rate-slider-hours { display: block; margin-top: .35rem; color: var(--faint); font-size: .62rem; }

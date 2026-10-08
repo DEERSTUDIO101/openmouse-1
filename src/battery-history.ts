@@ -200,6 +200,16 @@ export function ratedFullChargeHours(battery: RatedBattery, pollingRateHz?: numb
   return rated && current ? (battery.hours * rated) / current : battery.hours;
 }
 
+/**
+ * Hours a full charge lasts at this polling rate, or null when the model has no
+ * power figure for it (so the rates cannot be told apart honestly).
+ */
+export function fullChargeHoursAt(deviceName: string, pollingRateHz: number): number | null {
+  const battery = ratedBattery(deviceName);
+  if (!battery?.powerByRateHz?.[pollingRateHz] || !battery.powerByRateHz[battery.ratedRateHz ?? 0]) return null;
+  return ratedFullChargeHours(battery, pollingRateHz);
+}
+
 /** Time left on the rated figure, in the same format as estimateBatteryTime. */
 export function estimateFromRatedLife(
   percent: number,

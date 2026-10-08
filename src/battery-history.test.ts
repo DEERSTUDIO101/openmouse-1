@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { cachedBatterySamples, estimateBatteryTime, estimateFromRatedLife, ratedBattery, ratedFullChargeHours, recordBatterySample, saveBatterySample } from "./battery-history.ts";
+import { cachedBatterySamples, estimateBatteryTime, estimateFromRatedLife, fullChargeHoursAt, ratedBattery, ratedFullChargeHours, recordBatterySample, saveBatterySample } from "./battery-history.ts";
 
 class MemoryStorage implements Storage {
   #values = new Map<string, string>();
@@ -82,4 +82,11 @@ test("the rated-life estimate scales with the charge and the rate, in the usual 
   assert.equal(estimateFromRatedLife(51, x3, 8000), "~17 hr", "51% of 33.75 h");
   assert.equal(estimateFromRatedLife(10, ratedBattery("PRO X2 SUPERSTRIKE")!, 1000), "~9.0 hr");
   assert.equal(estimateFromRatedLife(0, x3, 1000), null, "an empty battery has no time left to show");
+});
+
+test("full-charge hours follow the polling rate on a model with a power table, and are unknown otherwise", () => {
+  assert.equal(fullChargeHoursAt("PRO X3 SUPERSTRIKE", 1000), 135);
+  assert.equal(fullChargeHoursAt("PRO X3 SUPERSTRIKE", 8000), 33.75);
+  assert.equal(fullChargeHoursAt("PRO X3 SUPERSTRIKE", 3000), null);
+  assert.equal(fullChargeHoursAt("Some other mouse", 1000), null);
 });
