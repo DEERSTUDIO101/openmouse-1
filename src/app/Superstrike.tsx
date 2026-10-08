@@ -369,8 +369,8 @@ export function Superstrike({ snapshot }: { snapshot: ControlSnapshot }): ReactN
     <div id="logitech-analog-button-settings">
       <article className="setting-card superstrike-tuning-card">
         <div className="setting-heading superstrike-tuning-heading"><div><h2>HITS Tuning</h2></div></div>
-        <PressMeter actuation={[state.left.actuation, state.right.actuation]} />
         <HitsPresets state={state} limits={tuning} locale={locale} canAdjust={!showApply} />
+        <PressMeter actuation={[state.left.actuation, state.right.actuation]} />
         <div className="superstrike-tabs" role="tablist" aria-label="HITS tuning mode">
           {(["both", "independent"] as const).map((mode) => (
             <button
