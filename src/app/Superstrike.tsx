@@ -174,6 +174,9 @@ export function Superstrike({ snapshot }: { snapshot: ControlSnapshot }): ReactN
   if (!tuning || tuning.buttons.length !== 2) return null;
   const locale = snapshot.preferences.locale;
   const state = snapshot.analogTuning;
+  // With instant flash on, a step is written the moment it is picked, so there
+  // is nothing to apply. A game-profile draft stages instead of flashing.
+  const showApply = !snapshot.preferences.instantFlash || snapshot.gameProfileDraft;
 
   return (
     <section
@@ -208,14 +211,16 @@ export function Superstrike({ snapshot }: { snapshot: ControlSnapshot }): ReactN
                   {side === "left" ? t(locale, "adv.leftButton") : t(locale, "adv.rightButton")}
                 </legend>
                 <TuningControls group={side} tuning={state[side]} limits={tuning} locale={locale} />
-                <button
-                  id={`apply-logitech-${side}-button`}
-                  className="superstrike-apply-button"
-                  type="button"
-                  onClick={() => control.applyLogitechAnalogButton(side === "left" ? 0 : 1)}
-                >
-                  {side === "left" ? t(locale, "super.applyLeft") : t(locale, "super.applyRight")}
-                </button>
+                {showApply ? (
+                  <button
+                    id={`apply-logitech-${side}-button`}
+                    className="superstrike-apply-button"
+                    type="button"
+                    onClick={() => control.applyLogitechAnalogButton(side === "left" ? 0 : 1)}
+                  >
+                    {side === "left" ? t(locale, "super.applyLeft") : t(locale, "super.applyRight")}
+                  </button>
+                ) : null}
               </fieldset>
             ))}
           </div>
@@ -223,14 +228,16 @@ export function Superstrike({ snapshot }: { snapshot: ControlSnapshot }): ReactN
             <legend><span className="superstrike-button-dot" />{t(locale, "super.bothPrimary")}</legend>
             <p>{t(locale, "super.bothBody")}</p>
             <TuningControls group="both" tuning={state.both} limits={tuning} locale={locale} />
-            <button
-              id="apply-logitech-both-buttons"
-              className="superstrike-apply-button"
-              type="button"
-              onClick={control.applyLogitechAnalogButtons}
-            >
-              {t(locale, "super.applyBoth")}
-            </button>
+            {showApply ? (
+              <button
+                id="apply-logitech-both-buttons"
+                className="superstrike-apply-button"
+                type="button"
+                onClick={control.applyLogitechAnalogButtons}
+              >
+                {t(locale, "super.applyBoth")}
+              </button>
+            ) : null}
           </fieldset>
         </div>
       </article>
