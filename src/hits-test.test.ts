@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { averageMs, savedMs } from "./hits-test.ts";
+import { averageMs, savedMs, stepTimes } from "./hits-test.ts";
 
 const press = (...steps: [number, number][]) => steps.map(([t, depth]) => ({ t, depth }));
 
@@ -20,6 +20,11 @@ test("actuation at the conventional step saves nothing, and a deeper one costs t
 test("a press that never reaches a step cannot be compared", () => {
   assert.equal(savedMs(press([0, 1], [5, 3]), 2), null);
   assert.equal(savedMs([], 2), null);
+});
+
+test("step times count from the start and are null for steps the press skipped", () => {
+  const samples = press([100, 1], [110, 3], [120, 4], [135, 6]);
+  assert.deepEqual(stepTimes(samples, 80), [20, 30, 30, 40, 55, 55, null, null, null, null]);
 });
 
 test("the average skips presses that could not be compared", () => {

@@ -28,6 +28,17 @@ export function savedMs(samples: readonly DepthSample[], actuation: number): num
   return conventional - fired;
 }
 
+/**
+ * When each step 1 to 10 was first reached, in milliseconds after `start`
+ * (null for a step the press skipped or never reached).
+ */
+export function stepTimes(samples: readonly DepthSample[], start: number): (number | null)[] {
+  return Array.from({ length: 10 }, (_, index) => {
+    const hit = samples.find((sample) => sample.depth >= index + 1);
+    return hit ? hit.t - start : null;
+  });
+}
+
 export function averageMs(values: readonly (number | null)[]): number | null {
   const known = values.filter((value): value is number => value !== null);
   return known.length === 0 ? null : known.reduce((sum, value) => sum + value, 0) / known.length;

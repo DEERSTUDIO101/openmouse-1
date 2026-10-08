@@ -2,14 +2,14 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import * as control from "../device/controller";
 import { t } from "../i18n";
 import type { InterfaceLocale } from "../interface-preferences";
-import { averageMs, savedMs, type DepthSample } from "../hits-test";
+import { averageMs, CONVENTIONAL_STEP, savedMs, stepTimes, type DepthSample } from "../hits-test";
 
 const ROUNDS = 5;
 // After the press, wait for the rest of its depth reports before comparing.
 const SETTLE_MS = 300;
 
 type Phase = "idle" | "wait" | "go" | "settle" | "done";
-interface Round { reaction: number; saved: number | null }
+interface Round { reaction: number; saved: number | null; steps: (number | null)[] }
 
 const ms = (value: number): string => `${Math.round(value)} ms`;
 const signed = (value: number): string => `${value > 0 ? "+" : ""}${Math.round(value)} ms`;
@@ -102,7 +102,7 @@ export function HitsTestDialog({
       setPhase("settle");
       timer.current = window.setTimeout(() => {
         const saved = savedMs(samples.current, actuationRef.current[sideRef.current]);
-        roundsRef.current = [...roundsRef.current, { reaction, saved }];
+        roundsRef.current = [...roundsRef.current, { reaction, saved, steps: stepTimes(samples.current, goAt.current) }];
         setRounds(roundsRef.current);
         if (roundsRef.current.length >= ROUNDS) setPhase("done");
         else start();
@@ -114,9 +114,12 @@ export function HitsTestDialog({
   const label = phase === "idle" ? (note || "Click here to start")
     : phase === "wait" ? "Wait for blue…"
       : phase === "go" ? "Click now!"
-        : phase === "settle" ? "…"
-          : average === null ? "Press deeper than step 5 to compare" : `${signed(average)} vs a normal switch`;
+        : "…";
   const value = actuation[side];
+  const last = rounds[rounds.length - 1];
+  const at = (step: number): number | null => last?.steps[step - 1] ?? null;
+  const hitsTime = at(value);
+  const conventionalTime = at(CONVENTIONAL_STEP);
 
   return (
     <dialog
@@ -177,7 +180,29 @@ export function HitsTestDialog({
             onMouseDown={press}
             onContextMenu={(event) => event.preventDefault()}
           >
-            {label}
+            {phase === "done" && last ? (
+              <span className="hits-test-result">
+                <span className="hits-test-result-numbers">
+                  <small>Time saved</small>
+                  <strong>{last.saved === null ? "-" : signed(last.saved)}</strong>
+                  {last.saved !== null && last.saved <= 0 ? <em>Try a lower actuation to save time.</em> : null}
+                  <small>Your HITS setting</small>
+                  <b>{hitsTime === null ? "-" : ms(hitsTime)}</b>
+                  <small>Conventional switch</small>
+                  <b>{conventionalTime === null ? "-" : ms(conventionalTime)}</b>
+                  {average !== null && rounds.length > 1 ? <small>Average over {rounds.length} clicks: {signed(average)}</small> : null}
+                </span>
+                <span className="hits-test-ladder" aria-label="Time to reach each step">
+                  {Array.from({ length: 10 }, (_, index) => index + 1).map((step) => (
+                    <span key={step} data-mark={step === value ? "hits" : step === CONVENTIONAL_STEP ? "conventional" : undefined}>
+                      <i>{step}</i>
+                      <u>{at(step) === null ? "-" : ms(at(step) as number)}</u>
+                    </span>
+                  ))}
+                </span>
+                <small>Click again to start over.</small>
+              </span>
+            ) : label}
           </button>
         </div>
         <div className="import-hits-actions">
