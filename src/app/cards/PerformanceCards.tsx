@@ -330,7 +330,7 @@ function LiftOffScale({ snapshot }: { snapshot: ControlSnapshot }): ReactNode {
 // While a flash runs the profile is briefly unreadable; keep showing the last good one.
 let lastBunnyHop: ControlSnapshot | null = null;
 
-export function BunnyHop({ snapshot: live }: { snapshot: ControlSnapshot }): ReactNode {
+export function BunnyHop({ snapshot: live, standalone = false }: { snapshot: ControlSnapshot; standalone?: boolean }): ReactNode {
   if (live.profile.bunnyHopSupported && live.profile.entry) lastBunnyHop = live;
   const snapshot = live.settingInProgress && !live.profile.entry && lastBunnyHop !== null && lastBunnyHop.status?.name === live.status?.name
     ? lastBunnyHop
@@ -346,9 +346,9 @@ export function BunnyHop({ snapshot: live }: { snapshot: ControlSnapshot }): Rea
   const value = snapshot.stagedBunnyHopMs ?? entry.bunnyHoppingMs ?? 0;
   const enabled = value !== 0;
 
-  return (
+  const row = (
     <div id="bunny-hop-row">
-      <div className="setting-heading">
+      <div className={standalone ? "setting-heading superstrike-tuning-heading" : "setting-heading"}>
         <div><h2>{t(locale, "perf.bunnyHop")}<span className="setting-scope">{t(locale, "dpi.perProfile")}</span></h2></div>
       </div>
       <div className="bunny-hop-controls">
@@ -383,6 +383,11 @@ export function BunnyHop({ snapshot: live }: { snapshot: ControlSnapshot }): Rea
       </small>
     </div>
   );
+  return standalone ? (
+    <div id="bunny-hop-card">
+      <article className="setting-card superstrike-tuning-card">{row}</article>
+    </div>
+  ) : row;
 }
 
 export function LightforceCard({ snapshot }: { snapshot: ControlSnapshot }): ReactNode {

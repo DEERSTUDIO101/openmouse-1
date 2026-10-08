@@ -366,6 +366,7 @@ export function Superstrike({ snapshot }: { snapshot: ControlSnapshot }): ReactN
   return (
     // A card in the Buttons tab's card list, so the mouse panel sits beside it.
     // The id scopes this card's styles.
+    <>
     <div id="logitech-analog-button-settings">
       <article className="setting-card superstrike-tuning-card">
         <div className="setting-heading superstrike-tuning-heading"><div><h2>HITS Tuning</h2></div></div>
@@ -422,8 +423,10 @@ export function Superstrike({ snapshot }: { snapshot: ControlSnapshot }): ReactN
             ) : null}
           </fieldset>
         </div>
-        <BunnyHop snapshot={snapshot} />
       </article>
     </div>
+    {/* Bunny Hop is a per-profile debounce, not a HITS setting, so it is its own card. */}
+    <BunnyHop snapshot={snapshot} standalone />
+    </>
   );
 }

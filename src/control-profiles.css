@@ -301,3 +301,4 @@
 .preview-launcher-link small { color:var(--ghost);font-family:'JetBrains Mono',monospace;font-size:.55rem }
 .preview-launcher-link.is-active { border-color:var(--ui-accent);color:var(--ui-accent) }
 .preview-launcher-link.is-active small { color:var(--ui-accent) }
+#bunny-hop-card #bunny-hop-row { margin: 0; padding: 0; border: 0; }

@@ -1403,13 +1403,15 @@ nav { display: grid; gap: .3rem; margin-top: 1.4rem; }
 .performance-main > * { grid-column: 1 / -1; }
 /* The HITS card's wrapper carries a top margin from its old layout; cards here line up. */
 .performance-main > #logitech-analog-button-settings { margin-top: 0; }
+.performance-main > #bunny-hop-card { order: -1; }
 @media (min-width: 1200px) {
   .performance-main:has(> #logitech-button-map):has(> #logitech-analog-button-settings) {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: start;
   }
-  .performance-main > #logitech-button-map { grid-column: 1; }
+  .performance-main > #logitech-button-map { grid-column: 1; grid-row: 1 / span 2; }
   .performance-main > #logitech-analog-button-settings { grid-column: 2; }
+  .performance-main > #bunny-hop-card { grid-column: 2; }
 }
 .performance-layout.has-no-sidebar { grid-template-columns: minmax(0, 1fr); }
 .performance-sidebar {
