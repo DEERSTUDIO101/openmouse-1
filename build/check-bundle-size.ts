@@ -17,7 +17,11 @@ const BUDGET_BYTES: Record<string, number> = {
   // Raised to 210 kB after the protocol 0.26.0 device batch left the measured
   // CSS aggregate at 194.2 kB — 843 bytes under the old 195 kB — so the next
   // card or theme change would have tripped the check for no reviewable reason.
-  ".css": 210_000,
+  // Raised to 225 kB for the Logitech Superstrike Buttons tab: the button map
+  // card (callouts, command list, scrollbar), the HITS presets/test/share dialogs
+  // and the Bunny Hop card add ~15 kB of scoped styles; the measured CSS is
+  // 210.6 kB, which was 631 bytes over the old 210 kB budget.
+  ".css": 225_000,
   // Raised from 510 kB for Bridge discovery, profile editing, automatic
   // reconnection, and recent device support, which have since grown further
   // with the supported-device page and MX Master remap controls. Preview
