@@ -185,3 +185,5 @@
 #logitech-button-map .button-map-reset button { flex: 1 1 0; padding: .4rem .5rem; border: 1px solid var(--border); border-radius: 7px; background: var(--input); color: var(--text-soft); font: 650 .62rem var(--font-mono); }
 #logitech-button-map .button-map-reset button:hover:not(:disabled) { border-color: var(--ghost); color: var(--text-hover); }
 #logitech-button-map .button-map-reset button:disabled { opacity: .4; cursor: not-allowed; }
+#logitech-button-map .button-map-share { padding: .4rem .8rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-raised); color: var(--text); font-size: .66rem; font-weight: 650; white-space: nowrap; }
+#logitech-button-map .button-map-share:hover { border-color: var(--ui-accent); color: var(--ui-accent); }

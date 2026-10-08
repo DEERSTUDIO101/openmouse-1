@@ -74,11 +74,11 @@ const ABSOLUTE_LIMITS: HitsLimits = {
   maxHaptics: ABSOLUTE.haptics,
 };
 
-function toBase64Url(bytes: number[]): string {
+export function toBase64Url(bytes: number[]): string {
   return btoa(String.fromCharCode(...bytes)).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
 }
 
-function fromBase64Url(text: string): number[] | null {
+export function fromBase64Url(text: string): number[] | null {
   try {
     const padded = text.replaceAll("-", "+").replaceAll("_", "/").padEnd(Math.ceil(text.length / 4) * 4, "=");
     return [...atob(padded)].map((character) => character.charCodeAt(0));
@@ -87,7 +87,7 @@ function fromBase64Url(text: string): number[] | null {
   }
 }
 
-function checksum(bytes: number[]): number {
+export function checksum(bytes: number[]): number {
   return bytes.reduce((sum, value) => (sum + value) & 0xff, 0x5a);
 }
 

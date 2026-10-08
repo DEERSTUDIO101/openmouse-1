@@ -5,6 +5,7 @@ import type { ControlSnapshot } from "../device/types";
 import { buttonMapLayoutFor, type ButtonSpot } from "../logitech-button-map";
 import { COMMAND_SECTIONS, bindingFromKeyEvent, describeAssignment, isAssigned, shortcutText, type CommandEntry } from "../logitech-commands";
 import { connectionText } from "../i18n";
+import { SetupCodeDialog } from "./SetupCodeDialog";
 import { BatteryIcon } from "./ui";
 
 type Layer = "primary" | "g-shift";
@@ -51,6 +52,7 @@ export function ButtonMap({ snapshot: live }: { snapshot: ControlSnapshot }): Re
   // What the user picked for a staged button, so the callout can say it before the flash.
   const [pending, setPending] = useState<Record<string, string>>({});
   const [recording, setRecording] = useState(false);
+  const [sharing, setSharing] = useState(false);
 
   const recordable = selected !== null && !(selected <= 1 && layer === "primary") && !live.settingInProgress;
   useEffect(() => {
@@ -139,7 +141,9 @@ export function ButtonMap({ snapshot: live }: { snapshot: ControlSnapshot }): Re
               </span>
             ) : null}
           </div>
+          <button type="button" className="icon-button button-map-share" onClick={() => setSharing(true)}>Share setup</button>
         </div>
+        <SetupCodeDialog open={sharing} snapshot={snapshot} onClose={() => setSharing(false)} />
         <div className="button-map-body">
           <aside className="button-map-commands" aria-label="Commands">
             <input
