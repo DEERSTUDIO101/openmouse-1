@@ -164,6 +164,7 @@ export function ButtonMap({ snapshot: live }: { snapshot: ControlSnapshot }): Re
               <button type="button" disabled={live.settingInProgress} onClick={() => void reset(unlocked)}>Reset all</button>
             </div>
             <small className="button-map-help" role="status">{help}</small>
+            <div className="button-map-list">
             {sections.map((section) => (
               <section key={section.id} className="button-map-section">
                 <h3>{section.title}</h3>
@@ -183,6 +184,7 @@ export function ButtonMap({ snapshot: live }: { snapshot: ControlSnapshot }): Re
               </section>
             ))}
             {sections.length === 0 ? <small className="button-map-help">No command matches.</small> : null}
+            </div>
           </aside>
           <div className="button-map-stage">
             <div className="button-map-canvas" style={{ "--aspect": layout.aspect } as CSSProperties}>
