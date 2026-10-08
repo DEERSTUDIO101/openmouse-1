@@ -74,9 +74,9 @@ export function ButtonMap({ snapshot }: { snapshot: ControlSnapshot }): ReactNod
 
   return (
     <div id="logitech-button-map">
-      <article className="setting-card button-map-card">
-        <div className="setting-heading button-map-heading">
-          <div><p>BUTTONS</p><h2>Button assignments</h2></div>
+      <article className="setting-card superstrike-tuning-card button-map-card">
+        <div className="setting-heading superstrike-tuning-heading button-map-heading">
+          <div><h2>Button assignments</h2></div>
           <div className="button-map-status" aria-label="Device status">
             <strong>{status.name}</strong>
             {status.connectionType ? <span>{connectionText(snapshot.preferences.locale, status.connectionType)}</span> : null}

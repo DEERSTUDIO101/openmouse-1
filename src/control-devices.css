@@ -34,8 +34,8 @@
 #logitech-device-details .setting-card { min-height: 0; }
 #logitech-detail-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .55rem; }
 :is(#logitech-analog-button-settings, #magnetic-button-settings) { flex: 0 0 auto; margin-top: .65rem; }
-:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-tuning-card { min-height: 0; padding: 1rem; border-color: color-mix(in srgb, var(--ui-accent) 20%, var(--border)); background: linear-gradient(135deg, color-mix(in srgb, var(--ui-accent) 5%, var(--surface-menu)), var(--surface-panel-strong) 62%); }
-:is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-tuning-heading { margin-bottom: .2rem; }
+:is(#logitech-analog-button-settings, #magnetic-button-settings, #logitech-button-map) .superstrike-tuning-card { min-height: 0; padding: 1rem; border-color: color-mix(in srgb, var(--ui-accent) 20%, var(--border)); background: linear-gradient(135deg, color-mix(in srgb, var(--ui-accent) 5%, var(--surface-menu)), var(--surface-panel-strong) 62%); }
+:is(#logitech-analog-button-settings, #magnetic-button-settings, #logitech-button-map) .superstrike-tuning-heading { margin-bottom: .2rem; }
 :is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-tuning-description { max-width: 540px; margin: .1rem 0 0; color: var(--text-soft); line-height: 1.45; }
 :is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-tabs { display: inline-flex; gap: .2rem; margin-top: .7rem; padding: .2rem; border: 1px solid var(--border); border-radius: 7px; background: var(--well); }
 :is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-tabs button { padding: .32rem .52rem; border: 0; border-radius: 5px; background: transparent; color: var(--muted); font-size: .58rem; font-weight: 700; }
