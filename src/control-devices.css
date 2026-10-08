@@ -94,11 +94,12 @@
   #egg-button-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
-#logitech-analog-button-settings .superstrike-presets { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin: 0 0 .8rem; }
-#logitech-analog-button-settings .superstrike-presets select { padding: .34rem .5rem; border: 1px solid var(--border); border-radius: 7px; background: var(--input); color: var(--text-soft); font: 650 .62rem var(--font-mono); }
-#logitech-analog-button-settings .superstrike-presets .icon-button { padding: .34rem .7rem; font-size: .66rem; font-weight: 600; white-space: nowrap; }
+#logitech-analog-button-settings .superstrike-presets { display: grid; grid-template-columns: repeat(auto-fit, minmax(5.6rem, 1fr)); align-items: stretch; gap: .5rem; margin: .2rem 0 1rem; padding: .75rem; border: 1px solid var(--border); border-radius: 10px; background: var(--well); }
+#logitech-analog-button-settings .superstrike-presets select { grid-column: 1 / -1; width: 100%; padding: .55rem .7rem; border: 1px solid var(--border); border-radius: 8px; background: var(--input); color: var(--text); font: 650 .72rem var(--font-mono); }
+#logitech-analog-button-settings .superstrike-presets .icon-button { display: flex; align-items: center; justify-content: center; min-height: 2.1rem; padding: .45rem .7rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-raised); color: var(--text); font-size: .68rem; font-weight: 650; white-space: nowrap; }
+#logitech-analog-button-settings .superstrike-presets .icon-button:hover:not(:disabled) { border-color: var(--ui-accent); color: var(--ui-accent); }
 #logitech-analog-button-settings .superstrike-presets .icon-button:disabled { opacity: .45; cursor: not-allowed; }
-#logitech-analog-button-settings .superstrike-presets-note { color: var(--faint); font-size: .62rem; }
+#logitech-analog-button-settings .superstrike-presets-note { grid-column: 1 / -1; color: var(--faint); font-size: .64rem; }
 :is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-press-meters { display: grid; gap: .35rem; margin: .2rem 0 .8rem; }
 :is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-press-meter { display: grid; grid-template-columns: 2.6rem 1fr; align-items: center; gap: .6rem; font: 650 .62rem var(--font-mono); color: var(--text-soft); }
 :is(#logitech-analog-button-settings, #magnetic-button-settings) .superstrike-press-meter > div { display: grid; grid-template-columns: repeat(10, 1fr); gap: .2rem; }
