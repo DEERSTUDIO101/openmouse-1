@@ -327,7 +327,14 @@ function LiftOffScale({ snapshot }: { snapshot: ControlSnapshot }): ReactNode {
   );
 }
 
-export function BunnyHop({ snapshot }: { snapshot: ControlSnapshot }): ReactNode {
+// While a flash runs the profile is briefly unreadable; keep showing the last good one.
+let lastBunnyHop: ControlSnapshot | null = null;
+
+export function BunnyHop({ snapshot: live }: { snapshot: ControlSnapshot }): ReactNode {
+  if (live.profile.bunnyHopSupported && live.profile.entry) lastBunnyHop = live;
+  const snapshot = live.settingInProgress && !live.profile.entry && lastBunnyHop !== null && lastBunnyHop.status?.name === live.status?.name
+    ? lastBunnyHop
+    : live;
   const entry = snapshot.profile.entry;
   if (!snapshot.profile.bunnyHopSupported || !entry) return null;
   const locale = snapshot.preferences.locale;
