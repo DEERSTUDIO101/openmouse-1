@@ -542,8 +542,6 @@ export function Workspace({
   const powerOverview = status.ui?.powerOverview === true;
 
   const performance = [
-    // First in the Buttons tab, in the card list so the mouse panel stays beside it.
-    show(has.superstrike, ["buttons"]) ? <Superstrike key="superstrike" snapshot={snapshot} /> : null,
     show(has.dpi, ["performance"]) ? <DpiCard key="dpi" snapshot={snapshot} /> : null,
     show(has.polling, ["performance"]) ? <PollingCard key="polling" snapshot={snapshot} /> : null,
     show(has.sensor, ["performance"]) ? <SensorCard key="sensor" snapshot={snapshot} /> : null,
@@ -643,7 +641,7 @@ export function Workspace({
       {showTeevolutionProfiles ? <TeevolutionProfileCard snapshot={snapshot} /> : null}
       {showNapeLayers ? <KeychronNapeLayers snapshot={snapshot} /> : null}
 
-      {performance.length > 0 ? (
+      {performance.length > 0 || showSuperstrike ? (
         <section
           id="performance-settings"
           className={[
@@ -659,8 +657,14 @@ export function Workspace({
               <DeviceShowcaseSidebar snapshot={snapshot} />
             </aside>
           ) : null}
-          <div className="performance-controls">
-            {performance}
+          <div className="performance-main">
+            {/* The HITS card keeps its own card chrome, first, beside the mouse panel. */}
+            {showSuperstrike ? <Superstrike snapshot={snapshot} /> : null}
+            {performance.length > 0 ? (
+              <div className="performance-controls">
+                {performance}
+              </div>
+            ) : null}
           </div>
         </section>
       ) : null}

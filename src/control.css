@@ -1390,6 +1390,12 @@ nav { display: grid; gap: .3rem; margin-top: 1.4rem; }
   width: 100%;
   margin-top: 0;
 }
+.performance-main {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+  min-width: 0;
+}
 .performance-sidebar {
   position: sticky;
   top: .75rem;
