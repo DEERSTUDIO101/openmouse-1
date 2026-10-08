@@ -164,7 +164,7 @@
 #logitech-button-map .button-map-layers button { padding: .3rem .8rem; border: 0; border-radius: 6px; background: none; color: var(--text-soft); font: 650 .62rem var(--font-mono); text-transform: uppercase; letter-spacing: .06em; cursor: pointer; }
 #logitech-button-map .button-map-layers button[aria-selected="true"] { background: var(--surface-raised); color: var(--text); }
 #logitech-button-map .button-map-card { container-type: inline-size; }
-@container (max-width: 56rem) {
+@container (max-width: 40rem) {
   #logitech-button-map .button-map-body { grid-template-columns: minmax(0, 1fr); }
   #logitech-button-map .button-map-stage { order: -1; }
   #logitech-button-map .button-map-commands { max-height: 16rem; }
