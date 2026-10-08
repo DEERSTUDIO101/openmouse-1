@@ -8,6 +8,7 @@ import {
   encodeHitsCode,
   loadHitsPresets,
   BUILT_IN_HITS_PRESETS,
+  PRO_HITS_PRESETS,
   presetFits,
   saveHitsPreset,
   type HitsButtonValues,
@@ -136,7 +137,7 @@ function HitsPresets({ state, limits, locale }: { state: AnalogTuningState; limi
         onChange={(event) => {
           const name = event.currentTarget.value;
           setSelected(name);
-          const builtIn = BUILT_IN_HITS_PRESETS.find((entry) => `builtin:${entry.name}` === name);
+          const builtIn = [...BUILT_IN_HITS_PRESETS, ...PRO_HITS_PRESETS].find((entry) => `builtin:${entry.name}` === name);
           const preset = builtIn ?? presets.find((entry) => entry.name === name);
           if (preset) load(preset, `"${preset.name}"`);
         }}
@@ -144,6 +145,11 @@ function HitsPresets({ state, limits, locale }: { state: AnalogTuningState; limi
         <option value="">Presets…</option>
         <optgroup label="Built-in">
           {BUILT_IN_HITS_PRESETS.filter((preset) => presetFits(preset, limits)).map((preset) => (
+            <option key={preset.name} value={`builtin:${preset.name}`}>{preset.name}</option>
+          ))}
+        </optgroup>
+        <optgroup label="Pro players (G HUB)">
+          {PRO_HITS_PRESETS.filter((preset) => presetFits(preset, limits)).map((preset) => (
             <option key={preset.name} value={`builtin:${preset.name}`}>{preset.name}</option>
           ))}
         </optgroup>

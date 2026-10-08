@@ -35,6 +35,16 @@ export const BUILT_IN_HITS_PRESETS: readonly HitsPreset[] = [
   { name: "Casual", ...both(7, 3, false, 3) },
 ];
 
+/** The pro player profiles G HUB lists, as its cards show them: actuation, rapid trigger, haptics. */
+export const PRO_HITS_PRESETS: readonly HitsPreset[] = [
+  // Whzy's right button has rapid trigger off in G HUB; its stored step is kept at the lowest.
+  { name: "Whzy", left: side(1, 1, true, 2), right: side(4, 1, false, 2) },
+  { name: "ShowMaker", ...both(2, 1, true, 2) },
+  { name: "MrFaliN", left: side(4, 2, true, 3), right: side(5, 2, true, 5) },
+  { name: "Gryffinn", ...both(2, 2, true, 2) },
+  { name: "m0NESY", ...both(5, 4, true, 5) },
+];
+
 const CODE_PREFIX = "HITS1-";
 const STORAGE_KEY = "openmouse-hits-presets-v1";
 const MAX_PRESETS = 20;
