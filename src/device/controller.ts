@@ -149,6 +149,7 @@ import { ModdoHidClient } from "@openmouse/protocol/drivers/moddo/hid";
 import { NinjutsoHidClient } from "@openmouse/protocol/drivers/ninjutso/hid";
 import { ZaunkoenigHidClient } from "@openmouse/protocol/drivers/zaunkoenig/hid";
 import { CorsairHidClient } from "@openmouse/protocol/drivers/corsair/hid";
+import { CorsairBragiHidClient } from "@openmouse/protocol/drivers/corsair/bragi-hid";
 import { TeevolutionHidClient } from "@openmouse/protocol/drivers/teevolution/hid";
 import { teevolutionProfileForCid } from "@openmouse/protocol/teevolution";
 import { VgnF2HidClient } from "@openmouse/protocol/drivers/vgn/hid";
@@ -267,7 +268,7 @@ function activeAs<T>(...classes: ClientClass<T>[]): T | null {
 
 const DM_CLASSES = [WLMouseHidClient, LamzuHidClient, LamzuAtlantisHidClient, AtkHidClient, AtkBitmouseHidClient, NinjutsoHidClient] as const;
 const RAZER_CLASSES = [RazerHidClient, RazerViperMiniHidClient, RazerViperHidClient, RazerCobraHidClient] as const;
-const NEEDS_OPEN = [LamzuAtlantisHidClient, TeevolutionHidClient, VgnF2HidClient, KeychronNapeHidClient, Keychron8kNordicHidClient, WLMouseBeastX4kHidClient, ModdoHidClient, ZaunkoenigHidClient, CorsairHidClient, FantechHidClient, WallhackMouseHidClient, WallhackKeyboardHidClient, GloriousHidClient, GloriousClassicHidClient, MchoseHidClient, MchoseDockHidClient, MchoseA5ProMaxHidClient, MchoseV3HidClient, MicrosoftHidClient, DareuHidClient, IncottHidClient, BytechHidClient, RapooHidClient, FaterHidClient, CoolerMasterHidClient, RedragonM690ProHidClient] as const;
+const NEEDS_OPEN = [LamzuAtlantisHidClient, TeevolutionHidClient, VgnF2HidClient, KeychronNapeHidClient, Keychron8kNordicHidClient, WLMouseBeastX4kHidClient, ModdoHidClient, ZaunkoenigHidClient, CorsairHidClient, CorsairBragiHidClient, FantechHidClient, WallhackMouseHidClient, WallhackKeyboardHidClient, GloriousHidClient, GloriousClassicHidClient, MchoseHidClient, MchoseDockHidClient, MchoseA5ProMaxHidClient, MchoseV3HidClient, MicrosoftHidClient, DareuHidClient, IncottHidClient, BytechHidClient, RapooHidClient, FaterHidClient, CoolerMasterHidClient, RedragonM690ProHidClient] as const;
 const PULSAR_CLASSES = [PulsarHidClient, PulsarProHidClient, PulsarXs1HidClient] as const;
 
 const logitechClient = (): LogitechHidppClient | null => activeAs(LogitechHidppClient);
