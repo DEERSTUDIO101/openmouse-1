@@ -82,3 +82,10 @@ test("two buttons doing the same thing, and Back or Forward left unassigned, are
     ["Nothing is set to Back.", "Nothing is set to Forward."],
   );
 });
+
+test("a macro on a button is not reported as nothing, and two macros are not duplicates", () => {
+  const layout = (...texts: string[]) => ["Primary click", "Secondary click", "Middle click", "Forward", "Back"]
+    .map((label, index) => ({ label, text: texts[index] }));
+  assert.deepEqual(conflictHints(layout("Left click", "Right click", "Middle click", "Forward", "Macro")), []);
+  assert.deepEqual(conflictHints(layout("Left click", "Right click", "Macro", "2-key macro", "Macro")), []);
+});

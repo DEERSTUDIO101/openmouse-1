@@ -161,6 +161,8 @@ export function describeAssignment(action: string, raw: readonly number[]): stri
 
 /** What is "not a real command" for the conflict check. */
 const NO_COMMAND = new Set(["-", "Disabled", "Pending"]);
+/** Text of a macro or an unreadable custom record: it does something, but we cannot say what. */
+const isOpaque = (text: string): boolean => text === "Macro" || text === "Custom" || /-key macro$/.test(text);
 
 /**
  * Plain-words warnings about a button layout: two buttons that do the same thing,
@@ -171,14 +173,16 @@ export function conflictHints(buttons: readonly { label: string; text: string }[
   const hints: string[] = [];
   const seen = new Map<string, string[]>();
   for (const { label, text } of buttons) {
-    if (NO_COMMAND.has(text)) continue;
+    if (NO_COMMAND.has(text) || isOpaque(text)) continue;
     seen.set(text, [...(seen.get(text) ?? []), label]);
   }
   for (const [text, labels] of seen) {
     if (labels.length > 1) hints.push(`${labels.join(" and ")} both do ${text}.`);
   }
+  // A macro or custom record on any button may well be standing in for Back or Forward.
+  const hasOpaque = buttons.some(({ text }) => isOpaque(text));
   for (const wanted of ["Back", "Forward"]) {
-    if (!seen.has(wanted)) hints.push(`Nothing is set to ${wanted}.`);
+    if (!seen.has(wanted) && !hasOpaque) hints.push(`Nothing is set to ${wanted}.`);
   }
   return hints;
 }
