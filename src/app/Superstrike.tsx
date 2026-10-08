@@ -5,7 +5,6 @@ import type { InterfaceLocale } from "../interface-preferences";
 import type { AnalogTuning, AnalogTuningState, ControlSnapshot } from "../device/types";
 import {
   deleteHitsPreset,
-  encodeHitsCode,
   loadHitsPresets,
   BUILT_IN_HITS_PRESETS,
   PRO_HITS_PRESETS,
@@ -19,7 +18,6 @@ import { BunnyHop } from "./cards/PerformanceCards";
 import { DeleteHitsPresetDialog } from "./DeleteHitsPresetDialog";
 import { HitsTestDialog } from "./HitsTestDialog";
 import { SaveHitsPresetDialog } from "./SaveHitsPresetDialog";
-import { ImportHitsCodeDialog } from "./ImportHitsCodeDialog";
 
 function SuperstrikeSteps({
   id,
@@ -98,7 +96,6 @@ function HitsPresets({ state, limits, locale, canAdjust }: { state: AnalogTuning
   const [presets, setPresets] = useState<HitsPreset[]>(() => loadHitsPresets(localStorage));
   const [selected, setSelected] = useState("");
   const [note, setNote] = useState("");
-  const [importOpen, setImportOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -213,26 +210,6 @@ function HitsPresets({ state, limits, locale, canAdjust }: { state: AnalogTuning
           setDeleting(null);
         }}
       />
-      <button
-        type="button"
-        className="icon-button"
-        onClick={() => {
-          const code = encodeHitsCode(current());
-          navigator.clipboard?.writeText(code).then(
-            () => setNote("Code copied."),
-            () => window.prompt("Copy this code", code),
-          ) ?? window.prompt("Copy this code", code);
-        }}
-      >
-        Copy code
-      </button>
-      <button
-        type="button"
-        className="icon-button"
-        onClick={() => setImportOpen(true)}
-      >
-        Import code
-      </button>
       <button type="button" className="icon-button" onClick={() => setTesting(true)}>
         Test
       </button>
@@ -257,17 +234,6 @@ function HitsPresets({ state, limits, locale, canAdjust }: { state: AnalogTuning
         canAdjust={canAdjust}
         onAdjust={(side, value) => control.setAnalogTuningValue(state.mode === "both" ? "both" : side === 0 ? "left" : "right", "actuation", value)}
         onClose={() => setTesting(false)}
-      />
-      <ImportHitsCodeDialog
-        open={importOpen}
-        limits={limits}
-        locale={locale}
-        onClose={() => setImportOpen(false)}
-        onImport={(decoded, name) => {
-          if (!load(decoded, "the code")) return;
-          if (name.trim()) save({ name, ...decoded });
-          setImportOpen(false);
-        }}
       />
       {note ? <small className="superstrike-presets-note" role="status">{note}</small> : null}
     </div>
