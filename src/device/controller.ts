@@ -3160,6 +3160,11 @@ export function setAnalogTuningValue(
 ): void {
   analogTuning = { ...analogTuning, [group]: { ...analogTuning[group], [setting]: value } };
   emit();
+  // A HITS step is only on-screen state until it is staged. With instant flash
+  // on, stage it now, as every other setting does; otherwise it waits for Apply.
+  if (!interfacePreferences.instantFlash) return;
+  if (group === "both") applyLogitechAnalogButtons();
+  else applyLogitechAnalogButton(group === "left" ? 0 : 1);
 }
 
 /**
