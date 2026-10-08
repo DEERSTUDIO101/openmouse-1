@@ -23,6 +23,7 @@ import { KeychronNapeLayers } from "./KeychronNapeLayers";
 import { Profiles } from "./Profiles";
 import { MagneticButtons } from "./MagneticButtons";
 import { Superstrike } from "./Superstrike";
+import { ButtonMap, buttonMapAvailable } from "./ButtonMap";
 import { DpiCard } from "./cards/DpiCard";
 import { LightforceCard, PollingCard, SensorCard } from "./cards/PerformanceCards";
 import { LightingCard } from "./cards/LightingCard";
@@ -605,6 +606,7 @@ export function Workspace({
   const showTeevolutionProfiles = show(snapshot.traits.teevolution && has.onboardProfiles, ["profiles"]);
   const showNapeLayers = show(has.keychronNapeLayers, ["profiles"]);
   const showSuperstrike = show(has.superstrike, ["buttons"]);
+  const showButtonMap = show(buttonMapAvailable(snapshot), ["buttons"]);
   const showMagnetic = show(has.magnetic, ["buttons"]);
   const showLogitechDetails = device && show(has.logitechDetails, ["advanced"]);
   const showMxMaster = on(tab, ["advanced"])
@@ -641,7 +643,7 @@ export function Workspace({
       {showTeevolutionProfiles ? <TeevolutionProfileCard snapshot={snapshot} /> : null}
       {showNapeLayers ? <KeychronNapeLayers snapshot={snapshot} /> : null}
 
-      {performance.length > 0 || showSuperstrike ? (
+      {performance.length > 0 || showSuperstrike || showButtonMap ? (
         <section
           id="performance-settings"
           className={[
@@ -660,6 +662,7 @@ export function Workspace({
           <div className="performance-main">
             {/* The HITS card keeps its own card chrome, first, beside the mouse panel. */}
             {showSuperstrike ? <Superstrike snapshot={snapshot} /> : null}
+            {showButtonMap ? <ButtonMap snapshot={snapshot} /> : null}
             {performance.length > 0 ? (
               <div className="performance-controls">
                 {performance}
