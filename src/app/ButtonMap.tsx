@@ -227,6 +227,7 @@ export function ButtonMap({ snapshot: live }: { snapshot: ControlSnapshot }): Re
             >
               {recording === "key" ? "Press a key or shortcut... (Esc cancels)" : "Record a key or shortcut"}
             </button>
+            {layout.onboardMacros ? (
             <button
               type="button"
               className="button-map-record"
@@ -245,6 +246,7 @@ export function ButtonMap({ snapshot: live }: { snapshot: ControlSnapshot }): Re
                 ? (macro.length ? `Done: assign ${macro.length} ${macro.length === 1 ? "key" : "keys"}` : "Press keys in order... (Esc cancels)")
                 : "Record a macro"}
             </button>
+            ) : null}
             {recording === "macro" && macro.length ? <small className="button-map-help">{macro.map((step) => step.label).join(", ")}</small> : null}
             <div className="button-map-reset">
               <button type="button" disabled={!canAssign} onClick={() => void reset([selected as number])}>Reset button</button>
