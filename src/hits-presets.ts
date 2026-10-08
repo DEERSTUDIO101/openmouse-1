@@ -23,6 +23,18 @@ export interface HitsLimits {
   maxHaptics: number;
 }
 
+const side = (actuation: number, rapidTrigger: number, rapidTriggerEnabled: boolean, haptics: number): HitsButtonValues =>
+  ({ actuation, rapidTrigger, rapidTriggerEnabled, haptics });
+const both = (actuation: number, rapidTrigger: number, rapidTriggerEnabled: boolean, haptics: number): Pick<HitsPreset, "left" | "right"> =>
+  ({ left: side(actuation, rapidTrigger, rapidTriggerEnabled, haptics), right: side(actuation, rapidTrigger, rapidTriggerEnabled, haptics) });
+
+/** Starting points that ship with the app. Balanced is also what Reset goes back to. */
+export const BUILT_IN_HITS_PRESETS: readonly HitsPreset[] = [
+  { name: "Competitive", ...both(2, 1, true, 0) },
+  { name: "Balanced", ...both(5, 2, true, 3) },
+  { name: "Casual", ...both(7, 3, false, 3) },
+];
+
 const CODE_PREFIX = "HITS1-";
 const STORAGE_KEY = "openmouse-hits-presets-v1";
 const MAX_PRESETS = 20;

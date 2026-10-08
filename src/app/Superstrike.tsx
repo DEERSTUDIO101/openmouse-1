@@ -7,6 +7,7 @@ import {
   deleteHitsPreset,
   encodeHitsCode,
   loadHitsPresets,
+  BUILT_IN_HITS_PRESETS,
   presetFits,
   saveHitsPreset,
   type HitsButtonValues,
@@ -135,13 +136,34 @@ function HitsPresets({ state, limits, locale }: { state: AnalogTuningState; limi
         onChange={(event) => {
           const name = event.currentTarget.value;
           setSelected(name);
-          const preset = presets.find((entry) => entry.name === name);
+          const builtIn = BUILT_IN_HITS_PRESETS.find((entry) => `builtin:${entry.name}` === name);
+          const preset = builtIn ?? presets.find((entry) => entry.name === name);
           if (preset) load(preset, `"${preset.name}"`);
         }}
       >
         <option value="">Presets…</option>
-        {presets.map((preset) => <option key={preset.name} value={preset.name}>{preset.name}</option>)}
+        <optgroup label="Built-in">
+          {BUILT_IN_HITS_PRESETS.filter((preset) => presetFits(preset, limits)).map((preset) => (
+            <option key={preset.name} value={`builtin:${preset.name}`}>{preset.name}</option>
+          ))}
+        </optgroup>
+        {presets.length > 0 ? (
+          <optgroup label="Yours">
+            {presets.map((preset) => <option key={preset.name} value={preset.name}>{preset.name}</option>)}
+          </optgroup>
+        ) : null}
       </select>
+      <button
+        type="button"
+        className="icon-button"
+        onClick={() => {
+          const balanced = BUILT_IN_HITS_PRESETS.find((preset) => preset.name === "Balanced")!;
+          setSelected("");
+          load(balanced, "Balanced (reset)");
+        }}
+      >
+        Reset
+      </button>
       <button
         type="button"
         className="icon-button"
@@ -158,7 +180,7 @@ function HitsPresets({ state, limits, locale }: { state: AnalogTuningState; limi
       <button
         type="button"
         className="icon-button"
-        disabled={!selected}
+        disabled={!presets.some((preset) => preset.name === selected)}
         onClick={() => setDeleting(selected)}
       >
         Delete
