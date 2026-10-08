@@ -1396,7 +1396,9 @@ nav { display: grid; gap: .3rem; margin-top: 1.4rem; }
   align-content: start;
   min-width: 0;
 }
-/* The HITS card has a legacy order for another layout; here it comes first. */
+/* The HITS card has a legacy order for another layout. Here the button map comes
+   first, then the HITS card, then the rest. */
+.performance-main > #logitech-button-map { order: -2; }
 .performance-main > #logitech-analog-button-settings { order: -1; }
 .performance-layout.has-no-sidebar { grid-template-columns: minmax(0, 1fr); }
 .performance-sidebar {
