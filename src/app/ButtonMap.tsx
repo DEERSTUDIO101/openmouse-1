@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import * as control from "../device/controller";
 import type { LogitechButtonAction } from "@openmouse/protocol/drivers/logitech/onboard-profiles";
 import type { ControlSnapshot } from "../device/types";
@@ -10,7 +10,6 @@ import { BatteryIcon } from "./ui";
 
 type Layer = "primary" | "g-shift";
 
-interface MacroStep { key: number; modifiers: number; delayMs: number; label: string }
 
 /** What each unlocked button does out of the box; G-Shift starts with nothing on them. */
 const DEFAULT_ACTION: Record<number, CommandEntry["label"]> = { 2: "Middle click", 3: "Back", 4: "Forward" };
@@ -87,10 +86,8 @@ export function ButtonMap({ snapshot: live }: { snapshot: ControlSnapshot }): Re
   const [query, setQuery] = useState("");
   // What the user picked for a staged button, so the callout can say it before the flash.
   const [pending, setPending] = useState<Record<string, string>>({});
-  // "key" assigns the first key pressed; "macro" collects a sequence until it is finished.
-  const [recording, setRecording] = useState<false | "key" | "macro">(false);
-  const [macro, setMacro] = useState<MacroStep[]>([]);
-  const lastKeyAt = useRef(0);
+  // While recording, the next key or shortcut pressed is assigned to the selected button.
+  const [recording, setRecording] = useState(false);
   const [sharing, setSharing] = useState(false);
 
   const recordable = selected !== null && !(selected <= 1 && layer === "primary") && !live.settingInProgress;
@@ -101,18 +98,10 @@ export function ButtonMap({ snapshot: live }: { snapshot: ControlSnapshot }): Re
       // A bare Escape cancels; Ctrl+Esc and the like are still recordable.
       if (event.code === "Escape" && !event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey) {
         setRecording(false);
-        setMacro([]);
         return;
       }
       const binding = bindingFromKeyEvent(event);
       if (!binding || binding.kind !== "keyboard") return;
-      if (recording === "macro") {
-        const now = performance.now();
-        const delayMs = lastKeyAt.current === 0 ? 0 : Math.min(0xffff, Math.round(now - lastKeyAt.current));
-        lastKeyAt.current = now;
-        setMacro((steps) => [...steps, { key: binding.key, modifiers: binding.modifiers, delayMs, label: shortcutText(binding.key, binding.modifiers) }]);
-        return;
-      }
       void control.applyLogitechButtonAssignment(layer, selected, binding);
       setPending((previous) => ({ ...previous, [`${layer}-${selected}`]: shortcutText(binding.key, binding.modifiers) }));
       setRecording(false);
@@ -157,21 +146,6 @@ export function ButtonMap({ snapshot: live }: { snapshot: ControlSnapshot }): Re
   };
   const unlocked = layout.spots.filter((spot) => !isLocked(spot)).map((spot) => spot.button);
 
-  const finishMacro = (): void => {
-    if (selected === null || macro.length === 0) {
-      setRecording(false);
-      setMacro([]);
-      return;
-    }
-    if (macro.length === 1) {
-      void control.applyLogitechButtonAssignment(layer, selected, { kind: "keyboard", key: macro[0].key, modifiers: macro[0].modifiers });
-    } else {
-      void control.applyLogitechKeyboardSequence(layer, selected, macro.map(({ key, modifiers, delayMs }) => ({ key, modifiers, delayMs })));
-    }
-    setPending((previous) => ({ ...previous, [`${layer}-${selected}`]: macro.length === 1 ? macro[0].label : `${macro.length}-key macro` }));
-    setRecording(false);
-    setMacro([]);
-  };
   const hints = layer === "primary" ? conflictHints(layout.spots.map((spot) => ({ label: spot.label, text: textFor(spot) }))) : [];
 
   const needle = query.trim().toLowerCase();
@@ -221,33 +195,12 @@ export function ButtonMap({ snapshot: live }: { snapshot: ControlSnapshot }): Re
             <button
               type="button"
               className="button-map-record"
-              aria-pressed={recording === "key"}
-              disabled={!canAssign || recording === "macro"}
-              onClick={() => setRecording((mode) => (mode === "key" ? false : "key"))}
+              aria-pressed={recording}
+              disabled={!canAssign}
+              onClick={() => setRecording((on) => !on)}
             >
-              {recording === "key" ? "Press a key or shortcut... (Esc cancels)" : "Record a key or shortcut"}
+              {recording ? "Press a key or shortcut... (Esc cancels)" : "Record a key or shortcut"}
             </button>
-            {layout.onboardMacros ? (
-            <button
-              type="button"
-              className="button-map-record"
-              aria-pressed={recording === "macro"}
-              disabled={!canAssign || recording === "key"}
-              onClick={() => {
-                if (recording === "macro") finishMacro();
-                else {
-                  setMacro([]);
-                  lastKeyAt.current = 0;
-                  setRecording("macro");
-                }
-              }}
-            >
-              {recording === "macro"
-                ? (macro.length ? `Done: assign ${macro.length} ${macro.length === 1 ? "key" : "keys"}` : "Press keys in order... (Esc cancels)")
-                : "Record a macro"}
-            </button>
-            ) : null}
-            {recording === "macro" && macro.length ? <small className="button-map-help">{macro.map((step) => step.label).join(", ")}</small> : null}
             <div className="button-map-reset">
               <button type="button" disabled={!canAssign} onClick={() => void reset([selected as number])}>Reset button</button>
               <button type="button" disabled={live.settingInProgress} onClick={() => void reset(unlocked)}>Reset all</button>

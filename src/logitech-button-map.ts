@@ -19,11 +19,6 @@ export interface ButtonSpot {
 export interface ButtonMapLayout {
   /** Artwork width divided by height. */
   aspect: number;
-  /**
-   * Whether macros can be stored on the mouse. G HUB shows them as locked on the
-   * Superstrike mice, and its capture holds no macro write, so they are not offered.
-   */
-  onboardMacros: boolean;
   spots: readonly ButtonSpot[];
 }
 
@@ -40,14 +35,12 @@ function spots(positions: Record<"left" | "right" | "wheel" | "back" | "forward"
 // PRO X 3 Superstrike artwork, 2500 x 2160.
 const PRO_X3: ButtonMapLayout = {
   aspect: 2500 / 2160,
-  onboardMacros: false,
   spots: spots({ left: [0.43, 0.3], right: [0.575, 0.3], wheel: [0.5, 0.272], forward: [0.3475, 0.399], back: [0.351, 0.544] }),
 };
 
 // PRO X 2 Superstrike artwork, 4886 x 2748.
 const PRO_X2: ButtonMapLayout = {
   aspect: 4886 / 2748,
-  onboardMacros: false,
   spots: spots({ left: [0.445, 0.302], right: [0.55, 0.302], wheel: [0.5015, 0.293], forward: [0.4015, 0.4], back: [0.404, 0.533] }),
 };
 
