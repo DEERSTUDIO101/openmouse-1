@@ -203,6 +203,7 @@ export const es: Record<I18nKey, string> = {
   "bat.full": "Totalmente cargada",
   "bat.untilFull": "para completar la carga",
   "bat.remaining": "restante",
+  "bat.remainingRated": "restante (según la autonomía indicada)",
   "bat.charging": "Cargando",
   "bat.chargingSlowly": "Cargando lentamente",
   "bat.almostFull": "Casi llena",

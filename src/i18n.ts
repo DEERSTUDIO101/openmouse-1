@@ -207,6 +207,7 @@ const en = {
   "bat.full": "Fully charged",
   "bat.untilFull": "until full",
   "bat.remaining": "remaining",
+  "bat.remainingRated": "remaining (rated life)",
   "bat.charging": "Charging",
   "bat.chargingSlowly": "Charging slowly",
   "bat.almostFull": "Almost full",
