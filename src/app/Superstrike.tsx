@@ -17,6 +17,7 @@ import {
 } from "../hits-presets";
 import { BunnyHop } from "./cards/PerformanceCards";
 import { DeleteHitsPresetDialog } from "./DeleteHitsPresetDialog";
+import { EMPTY_TRACE, trackPress, type DepthSample, type PressTrace } from "../hits-test";
 import { HitsTestDialog } from "./HitsTestDialog";
 import { SaveHitsPresetDialog } from "./SaveHitsPresetDialog";
 import { ImportHitsCodeDialog } from "./ImportHitsCodeDialog";
@@ -58,15 +59,44 @@ function SuperstrikeSteps({
 
 // Actuation is read on the same 0..10 scale the mouse streams press depth on
 // (both derive from the same wire byte), so it lines up on the bar as-is.
+const GRAPH_W = 160;
+const GRAPH_H = 36;
+
+/** The last finished press as depth over time, with the actuation step as a dashed line. */
+function PressGraph({ side, trace, actuation }: { side: string; trace: DepthSample[]; actuation: number }): ReactNode {
+  const start = trace[0]?.t ?? 0;
+  const duration = trace.length > 1 ? trace[trace.length - 1].t - start : 0;
+  const peak = Math.max(0, ...trace.map((sample) => sample.depth));
+  // At least 120 ms wide, so a quick tap does not stretch across the whole graph.
+  const span = Math.max(duration, 120);
+  const x = (t: number) => ((t - start) / span) * GRAPH_W;
+  const y = (depth: number) => GRAPH_H - (depth / 10) * GRAPH_H;
+  return (
+    <div className="superstrike-press-graph">
+      <span>{side}</span>
+      <svg viewBox={`0 0 ${GRAPH_W} ${GRAPH_H}`} preserveAspectRatio="none" role="img" aria-label={`${side} last press`}>
+        <line x1="0" x2={GRAPH_W} y1={y(actuation)} y2={y(actuation)} className="superstrike-press-graph-actuation" />
+        {trace.length > 1 ? <polyline points={trace.map((sample) => `${x(sample.t).toFixed(1)},${y(sample.depth).toFixed(1)}`).join(" ")} /> : null}
+      </svg>
+      <small>{trace.length > 1 ? `peak ${peak}, ${Math.round(duration)} ms` : "press to record"}</small>
+    </div>
+  );
+}
+
 function PressMeter({ actuation }: { actuation: [number, number] }): ReactNode {
   const [depth, setDepth] = useState<[number, number]>([0, 0]);
+  const [traces, setTraces] = useState<[PressTrace, PressTrace]>([EMPTY_TRACE, EMPTY_TRACE]);
   useEffect(() => {
     control.startAnalogPressStream();
     // The mouse drops the stream on its own after some time (the arm request's
     // one unexplained byte, 0x3c, may be that timeout) and gives no notice, so
     // it is re-armed well before that could hit rather than only once.
     const keepalive = window.setInterval(() => control.startAnalogPressStream(), 20_000);
-    const stop = control.subscribeAnalogPress((left, right) => setDepth([left, right]));
+    const stop = control.subscribeAnalogPress((left, right) => {
+      setDepth([left, right]);
+      const t = performance.now();
+      setTraces((previous) => [trackPress(previous[0], { t, depth: left }), trackPress(previous[1], { t, depth: right })]);
+    });
     // A right-click test would otherwise pop the browser's own context menu.
     const suppressContextMenu = (event: MouseEvent) => event.preventDefault();
     window.addEventListener("contextmenu", suppressContextMenu);
@@ -89,6 +119,10 @@ function PressMeter({ actuation }: { actuation: [number, number] }): ReactNode {
           </div>
         </div>
       ))}
+      <div className="superstrike-press-graphs">
+        <PressGraph side="Left" trace={traces[0].last} actuation={actuation[0]} />
+        <PressGraph side="Right" trace={traces[1].last} actuation={actuation[1]} />
+      </div>
     </div>
   );
 }
@@ -236,6 +270,19 @@ function HitsPresets({ state, limits, locale, canAdjust }: { state: AnalogTuning
       <button type="button" className="icon-button" onClick={() => setTesting(true)}>
         Test
       </button>
+      {state.mode === "independent" ? (
+        <>
+          <button type="button" className="icon-button" onClick={() => { const { left } = current(); load({ left, right: left }, "left copied to right"); }}>
+            Left to right
+          </button>
+          <button type="button" className="icon-button" onClick={() => { const { right } = current(); load({ left: right, right }, "right copied to left"); }}>
+            Right to left
+          </button>
+          <button type="button" className="icon-button" onClick={() => { const { left, right } = current(); load({ left: right, right: left }, "left and right swapped"); }}>
+            Swap
+          </button>
+        </>
+      ) : null}
       <HitsTestDialog
         open={testing}
         locale={locale}

@@ -185,3 +185,9 @@
 #logitech-button-map .button-map-reset button { flex: 1 1 0; padding: .4rem .5rem; border: 1px solid var(--border); border-radius: 7px; background: var(--input); color: var(--text-soft); font: 650 .62rem var(--font-mono); }
 #logitech-button-map .button-map-reset button:hover:not(:disabled) { border-color: var(--ghost); color: var(--text-hover); }
 #logitech-button-map .button-map-reset button:disabled { opacity: .4; cursor: not-allowed; }
+#logitech-analog-button-settings .superstrike-press-graphs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; margin-top: .35rem; }
+#logitech-analog-button-settings .superstrike-press-graph { display: grid; grid-template-columns: 2.6rem minmax(0, 1fr); grid-template-rows: auto auto; column-gap: .6rem; align-items: center; color: var(--faint); font-size: .58rem; }
+#logitech-analog-button-settings .superstrike-press-graph > span { grid-row: 1 / span 2; }
+#logitech-analog-button-settings .superstrike-press-graph svg { width: 100%; height: 2.2rem; border: 1px solid var(--border); border-radius: 6px; background: var(--input); }
+#logitech-analog-button-settings .superstrike-press-graph polyline { fill: none; stroke: var(--ui-accent); stroke-width: 1.6; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+#logitech-analog-button-settings .superstrike-press-graph-actuation { stroke: var(--warning); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
