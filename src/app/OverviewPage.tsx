@@ -137,6 +137,7 @@ function DeviceShowcase({ snapshot }: {
   if (!status) return null;
   const locale = snapshot.preferences.locale;
   const image = snapshot.deviceArtwork;
+  const batteryEstimate = control.batteryEstimateParts(status, locale);
   const [imageFailed, setImageFailed] = useState(false);
   const [artSize, setArtSize] = useState<{ w: number; h: number } | null>(null);
 
@@ -208,6 +209,11 @@ function DeviceShowcase({ snapshot }: {
             <span className="device-showcase-status-item">
               <BatteryIcon percent={status.batteryPercent} state={status.batteryState} />
               <span className="device-showcase-status-value">{status.batteryPercent}%</span>
+              {batteryEstimate ? (
+                <span className="device-showcase-status-muted" title={`${batteryEstimate.time} ${batteryEstimate.label}`}>
+                  {batteryEstimate.time}
+                </span>
+              ) : null}
             </span>
           </>
         ) : null}
