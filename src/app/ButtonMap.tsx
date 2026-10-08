@@ -12,8 +12,7 @@ type Layer = "primary" | "g-shift";
 /** What each unlocked button does out of the box; G-Shift starts with nothing on them. */
 const DEFAULT_ACTION: Record<number, CommandEntry["label"]> = { 2: "Middle click", 3: "Back", 4: "Forward" };
 
-/** True when this mouse has a known button layout and a profile whose buttons can be written. */
-export function buttonMapAvailable(snapshot: ControlSnapshot): boolean {
+function hasButtonMap(snapshot: ControlSnapshot): boolean {
   const status = snapshot.status;
   return snapshot.traits.logitech
     && status !== null
@@ -22,12 +21,30 @@ export function buttonMapAvailable(snapshot: ControlSnapshot): boolean {
     && snapshot.profileFormat?.writable === true;
 }
 
+// While a flash runs, the profile is briefly unreadable. The card keeps showing the
+// last good state for that mouse instead of vanishing and coming back.
+let lastGood: ControlSnapshot | null = null;
+
+function stableSnapshot(snapshot: ControlSnapshot): ControlSnapshot | null {
+  if (hasButtonMap(snapshot)) {
+    lastGood = snapshot;
+    return snapshot;
+  }
+  return snapshot.settingInProgress && lastGood?.status?.name === snapshot.status?.name ? lastGood : null;
+}
+
+/** True when this mouse has a known button layout and a profile whose buttons can be written. */
+export function buttonMapAvailable(snapshot: ControlSnapshot): boolean {
+  return stableSnapshot(snapshot) !== null;
+}
+
 /**
  * Button assignments as a picture: the mouse with a callout per button. Pick a
  * button, then a command; the change goes through the same staged write as the
  * Profiles tab, so instant flash and the Flash bar behave the same.
  */
-export function ButtonMap({ snapshot }: { snapshot: ControlSnapshot }): ReactNode {
+export function ButtonMap({ snapshot: live }: { snapshot: ControlSnapshot }): ReactNode {
+  const snapshot = stableSnapshot(live) ?? live;
   const [layer, setLayer] = useState<Layer>("primary");
   const [selected, setSelected] = useState<number | null>(null);
   const [query, setQuery] = useState("");
@@ -35,7 +52,7 @@ export function ButtonMap({ snapshot }: { snapshot: ControlSnapshot }): ReactNod
   const [pending, setPending] = useState<Record<string, string>>({});
   const [recording, setRecording] = useState(false);
 
-  const recordable = selected !== null && !(selected <= 1 && layer === "primary") && !snapshot.settingInProgress;
+  const recordable = selected !== null && !(selected <= 1 && layer === "primary") && !live.settingInProgress;
   useEffect(() => {
     if (!recording || !recordable || selected === null) return;
     const onKey = (event: KeyboardEvent): void => {
@@ -72,7 +89,7 @@ export function ButtonMap({ snapshot }: { snapshot: ControlSnapshot }): ReactNod
   };
 
   const selectedSpot = layout.spots.find((spot) => spot.button === selected) ?? null;
-  const canAssign = selectedSpot !== null && !isLocked(selectedSpot) && !snapshot.settingInProgress;
+  const canAssign = selectedSpot !== null && !isLocked(selectedSpot) && !live.settingInProgress;
   const current = selected !== null ? assignmentFor(selected) : undefined;
 
   const assign = (command: CommandEntry): void => {
@@ -144,7 +161,7 @@ export function ButtonMap({ snapshot }: { snapshot: ControlSnapshot }): ReactNod
             </button>
             <div className="button-map-reset">
               <button type="button" disabled={!canAssign} onClick={() => void reset([selected as number])}>Reset button</button>
-              <button type="button" disabled={snapshot.settingInProgress} onClick={() => void reset(unlocked)}>Reset all</button>
+              <button type="button" disabled={live.settingInProgress} onClick={() => void reset(unlocked)}>Reset all</button>
             </div>
             <small className="button-map-help" role="status">{help}</small>
             {sections.map((section) => (
