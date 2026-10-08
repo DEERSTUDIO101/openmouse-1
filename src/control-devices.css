@@ -169,3 +169,6 @@
   #logitech-button-map .button-map-stage { order: -1; }
   #logitech-button-map .button-map-commands { max-height: 16rem; }
 }
+
+/* The search box stays at the top of the command list while it scrolls. */
+#logitech-button-map .button-map-search { position: sticky; top: 0; z-index: 1; box-shadow: 0 .35rem 0 0 var(--surface-panel-strong); }
